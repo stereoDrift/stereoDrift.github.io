@@ -2,9 +2,10 @@
 
 Live version: <b>https://stereodrift.github.io/</b>
 
-* Select audio -- demo songs, upload a track, or use live microphone audio
+* Select your audio -- a demo song, your own uploaded track, or live microphone audio
+* Hit play
 * Choose a visualization style and color palette
-* Hit play and enjoy :)
+* Enjoy :)
 
 Take Stereo Drift to your next house party, live set, or music video 🎵💃🎹
 
