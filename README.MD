@@ -9,6 +9,8 @@ Live version: <b>https://stereodrift.github.io/</b>
 
 Take Stereo Drift to your next house party, live set, or music video 🎵💃🎹
 
+<img src="https://github.com/stereoDrift/stereoDrift.github.io/blob/main/examples/stereoDriftGif1.gif"/><br />
+
 Built with javascript / d3.js / HTML / CSS.
 
 Sources and inspiration:
