@@ -6,7 +6,7 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Found Sound</title>
+        <title>Stereo Drift</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
 
             <div id="navMenuDiv">
 
-                <table id="menuTable">
+                <table id="menuTable" class="flexItem">
                 
                     <tr>
                         <td>
@@ -44,6 +44,7 @@
                             <label for="visualizationMenu">Visualization:</label>
                             <select name="visualizationMenu" id="visualizationMenu" class="userInput selectMenu">
                                 <option value="dancingCircles" selected>Dancing Circles</option>
+                                <option value="joyPlot">Joy Plot</option>
                                 <option value="waves">Waves</option>
                                 <option value="wire">Wire</option>
                                 <option value="circles">Circles</option>
@@ -98,7 +99,14 @@
     
                 </table>
 
-                <button id="toggleMenuButton">Hide Menu <i class="fa-solid fa-eye-slash"></i></button>
+                <button id="toggleMenuButton" class="flexItem">Hide Menu <i class="fa-solid fa-eye-slash"></i></button>
+
+                <table id="infoMenuTable" class="flexItem">
+                        <tr>
+                            <td><button id="instagramButton" class="socialMediaButton"><a href="https://www.instagram.com/stereodriftvisuals/" target="blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a></button></td>
+                            <td><button id="coffeeButton"class="socialMediaButton"><a href="https://www.buymeacoffee.com/stereoDrift" target="blank" rel="noopener"><i class="fa-solid fa-heart"></i></a></button></td>
+                        </tr>
+                </table>
 
             </div>
 

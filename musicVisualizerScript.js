@@ -5,6 +5,8 @@
 - Feature to import audio from Spotify or YouTube URL?
 - Mobile formatting (menu, shape sizes, etc.)
 - Readme file
+- Auto-play next demo track after one track finishes?
+- Joyploy instead of wire visualization
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
@@ -57,11 +59,13 @@ var navMenuHeight = document.getElementById('navMenuDiv').clientHeight;
 var svgHeight = svgContainerDiv.clientHeight;
 var svgWidth = svgContainerDiv.clientWidth;
 
+var infoMenuTable = document.getElementById("infoMenuTable");
+
 //Visualization Inputs
 var barPadding = 1;
 var numBars = 400;
 var numCircles = 25;
-var numCircles2 = 75;
+var numCircles2 = 100;
 var numCircles3 = 400;
 var circles3Cols = 40;
 var circles3Rows = numCircles3 / circles3Cols;
@@ -76,6 +80,10 @@ var wavesData = d3.range(1, wavesRows);
 
 var wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
 
+var joyPlotN = 600;
+var joyPlotRows = 3;
+var joyPlotCols = joyPlotN / joyPlotRows;
+
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
 var circles2FrequencyData = new Uint8Array(numCircles2);
@@ -83,6 +91,7 @@ var circles3FrequencyData = new Uint8Array(numCircles3);
 var dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
 var wavesFrequencyData = new Uint8Array(wavesRows);
 var wireFrequencyData = new Uint8Array(1);
+var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 
 
 //Colour palettes -- background, shape fill, shape outline
@@ -143,8 +152,8 @@ function setSvgSize(){
     setTimeout(function() {
         navMenuHeight = document.getElementById('navMenuDiv').clientHeight;
     
-        svgContainerDiv.style.height = (window.innerHeight - navMenuHeight - 12)+"px";
-        mainSvg.style.height = (window.innerHeight - navMenuHeight - 12)+"px";
+        svgContainerDiv.style.height = (window.innerHeight - navMenuHeight - 0)+"px";
+        mainSvg.style.height = (window.innerHeight - navMenuHeight - 0)+"px";
         
         console.log("Window innerHeight: "+window.innerHeight);
         console.log("navMenuHeight: "+navMenuHeight);
@@ -158,15 +167,30 @@ function setSvgSize(){
 
 function toggleMenu(){
     if(showMenu == true){
-        menuTable.classList.add("hide");
-        toggleMenuButton.innerHTML = "Show Menu <i class=\"fa-solid fa-eye\"></i>";
-        showMenu = false;
-        setSvgSize();
+
+        menuTable.classList.add('zeroOpacity');
+        infoMenuTable.classList.add('zeroOpacity');
+
+        setTimeout(function () {
+            menuTable.classList.add("hide");
+            infoMenuTable.classList.add("hide");
+            toggleMenuButton.innerHTML = "Show Menu <i class=\"fa-solid fa-eye\"></i>";
+            showMenu = false;
+            setSvgSize();
+        }, 500);
+
     } else {
         menuTable.classList.remove("hide");
-        toggleMenuButton.innerHTML = "Hide Menu <i class=\"fa-solid fa-eye-slash\"></i>";
-        showMenu = true;
-        setSvgSize();
+        infoMenuTable.classList.remove("hide");
+
+        setTimeout(function () {
+            menuTable.classList.remove("zeroOpacity");
+            infoMenuTable.classList.remove("zeroOpacity");
+            toggleMenuButton.innerHTML = "Hide Menu <i class=\"fa-solid fa-eye-slash\"></i>";
+            showMenu = true;
+            setSvgSize();
+        }, 50);
+
     }
 }
 
@@ -547,9 +571,7 @@ function runVisualization() {
             .attr('r', '2')
             .attr('stroke', strokeColour)
             .attr('stroke-width', '2')
-            .attr('opacity',function (d, i) {
-                return Math.random()+0.25;
-            });
+            .attr('opacity', 0.65);
     
         // Continuously loop and update chart with frequency data.
         function renderCircle2Chart() {
@@ -562,7 +584,7 @@ function runVisualization() {
             svg.selectAll('circle')
                 .data(circles2FrequencyData)
                 .attr('r', function(d) {
-                    return Math.pow(d*volumeMultiplier,1.1)*0.2;
+                    return Math.pow(d*volumeMultiplier,1.3)*0.08;
                 })
                 .attr('fill', fillColour);
         }
@@ -818,6 +840,164 @@ function runVisualization() {
         renderWireChart();
 
     }
+
+    else if(visualizationChoice == "joyPlot"){
+        console.log("Run joyPlot visualization");
+
+        analyser.smoothingTimeConstant = 0.9;
+
+        var frequencyMax = 255;
+        var opacity = 1.0;
+        var strokeWidth = 3;
+
+        var offset1 = 0;
+        var offset2 = 60;
+        var offset3 = 120;
+
+        var chartHeightMultiplier = 1.4;
+        var joyPlotExponent = 0.92;
+
+        var data1 = new Uint8Array(joyPlotCols);
+        var data2 = new Uint8Array(joyPlotCols);
+        var data3 = new Uint8Array(joyPlotCols);
+
+        // X scale will fit all values from data[] within pixels 0-w
+        var x = d3.scaleLinear().domain([0, joyPlotCols]).range([0, svgWidth+10]);
+        // Y scale will fit values from 0-10 within pixels h-0 (Note the inverted domain for the y-scale: bigger is up!)
+        var y = d3.scaleLinear().domain([0, frequencyMax*chartHeightMultiplier]).range([svgHeight, 0]);
+            // automatically determining max range can work something like this
+            // var y = d3.scale.linear().domain([0, d3.max(data)]).range([h, 0]);
+
+        /*
+        // create a line function that can convert data[] into x and y points
+        var line = d3.line()
+            // assign the X function to plot our line as we wish
+            .x(function(d,i) { 
+                // verbose logging to show what's actually being done
+                //console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+                // return the X coordinate where we want to plot this datapoint
+                return x(i); 
+            })
+            .y(function(d) { 
+                // verbose logging to show what's actually being done
+                //console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
+                // return the Y coordinate where we want to plot this datapoint
+                return y(d); 
+            })
+            .curve(d3.curveBasis);
+
+
+        /*
+        svg.append("path")
+            .attr("stroke",fillColour)
+            .attr("stroke-width","2")
+            .attr("fill","none")
+            .attr("d", line(joyPlotFrequencyData));
+        */
+
+        // Add the area
+
+        var path3 = svg.append("path")
+            .datum(data3)
+            .attr("fill", fillColour)
+            .attr("fill-opacity",opacity-0.6)
+            .attr("stroke", strokeColour)
+            .attr("stroke-width", strokeWidth)
+            .attr("d", d3.area()
+                .x(function(d,i) { return x(i) })
+                .y0(y(0))
+                .y1(function(d) { return y(d+offset3) })
+                .curve(d3.curveBasis)
+            );
+
+        var path2 = svg.append("path")
+            .datum(data2)
+            .attr("fill", fillColour)
+            .attr("fill-opacity",opacity-0.3)
+            .attr("stroke", strokeColour)
+            .attr("stroke-width", strokeWidth)
+            .attr("d", d3.area()
+                .x(function(d,i) { return x(i) })
+                .y0(y(0))
+                .y1(function(d) { return y(d+offset2) })
+                .curve(d3.curveBasis)
+            );
+
+        var path1 = svg.append("path")
+            .datum(data1)
+            .attr("fill", fillColour)
+            .attr("fill-opacity",opacity)
+            .attr("stroke", strokeColour)
+            .attr("stroke-width", strokeWidth)
+            .attr("d", d3.area()
+                .x(function(d,i) { return x(i) })
+                .y0(y(0))
+                .y1(function(d) { return y(d) })
+                .curve(d3.curveBasis)
+            );
+
+    
+        // Continuously loop and update chart with frequency data.
+        function renderJoyPlotChart() {
+            requestAnimationFrame(renderJoyPlotChart);
+
+            // Copy frequency data to frequencyData array.
+            analyser.getByteFrequencyData(joyPlotFrequencyData);
+
+            for(var i=0; i<joyPlotFrequencyData.length; i++){
+                //console.log("allocate joyPlot frequency data");
+                if(i < joyPlotFrequencyData.length*(1/3)){
+                    data1[i] = Math.pow(joyPlotFrequencyData[i],joyPlotExponent);
+
+                } else if(i < joyPlotFrequencyData.length*(2/3)){
+                    data2[i-(joyPlotFrequencyData.length*(1/3))] = Math.pow(joyPlotFrequencyData[i],joyPlotExponent);
+                
+                } else{
+                    data3[i-(joyPlotFrequencyData.length*(2/3))] = Math.pow(joyPlotFrequencyData[i],joyPlotExponent);
+                
+                }
+            }
+
+            //console.log("data1 array: "+data1);
+
+            /*
+            svg.selectAll("path")
+                .attr("d", line(joyPlotFrequencyData));
+            */
+
+            // Modify the line
+            //svg.selectAll("path")
+            path1
+                .attr("d", d3.area()
+                    .x(function(d,i) { return x(i) })
+                    .y0(y(0))
+                    .y1(function(d) { return y(d) })
+                    .curve(d3.curveBasis)
+                )
+
+            path2
+                .attr("d", d3.area()
+                    .x(function(d,i) { return x(i) })
+                    .y0(y(0))
+                    .y1(function(d) { return y(d+offset2) })
+                    .curve(d3.curveBasis)
+                )
+
+            path3
+                .attr("d", d3.area()
+                    .x(function(d,i) { return x(i) })
+                    .y0(y(0))
+                    .y1(function(d) { return y(d+offset3) })
+                    .curve(d3.curveBasis)
+                )
+
+        }
+
+        // Run the loop
+        renderJoyPlotChart();
+
+
+    }
     
 }
 
@@ -841,6 +1021,21 @@ function animateDancingCircles(){
     } else {
 
     }
+}
+
+// This is what I need to compute kernel density estimation
+function kernelDensityEstimator(kernel, X) {
+    return function(V) {
+      return X.map(function(x) {
+        return [x, d3.mean(V, function(v) { return kernel(x - v); })];
+      });
+    };
+}
+
+function kernelEpanechnikov(k) {
+    return function(v) {
+      return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
+    };
 }
 
 

@@ -11,24 +11,49 @@ table {
     font-size:1em;
     /*max-width:95%;*/
     margin: 0px 0px 0px 0px;
+    transition: opacity 1s;
+}
+
+#infoMenuTable{
+    max-width:80px;
+    table-layout: fixed;
+    height: 100%;
+    margin-left:10px;
+    margin-right:10px;
+}
+
+#infoMenuTable td {
+    padding: 0px 4px 0px 4px;
+    text-align: center;
 }
 
 td {
     border-left: 1px solid rgb(80, 80, 80);
     border-right: 1px solid rgb(80, 80, 80);
-    padding: 2px 15px 2px 15px;
+    padding: 2px 10px 2px 10px;
 }
 
 .hide{
     display:none;
 }
 
+.zeroOpacity {
+    opacity:0.0;
+}
+
 #navMenuDiv{
     display: flex;              /* establish flex container */
     flex-direction: row;     /* stack flex items vertically */
-    /*justify-content: center;    /* center items vertically, in this case */
+    justify-content: center;    /* center items vertically, in this case */
     /*align-items: center;        /* center items horizontally, in this case */
-    margin-bottom: 2px;
+    margin-bottom: 0;
+    align-items: center;
+    gap: 10px;
+}
+
+.flexItem {
+    flex-basis: auto; /* default auto */
+    flex-grow: 1; /* default 0 */
 }
 
 /* css as usual */
@@ -42,7 +67,7 @@ td {
 #mainSvg {
     width: 100vw;
     height: 65vh;
-    margin: 10px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
 }
 
 /* condition for screen size minimum of 500px */
@@ -66,10 +91,27 @@ button {
     font-family: 'League Spartan', sans-serif;
 }
 
+.socialMediaButton{
+    color:rgb(55, 60, 133);
+    font-size: 24px;
+    margin: 0;
+    padding: 4px;
+    border: none;
+    max-width: 20px;
+    max-height: 20px;
+}
+
+a:link {
+    text-decoration: none;
+    color:rgb(55, 60, 133);
+}
+
 #toggleMenuButton{
-    width:100px;
-    height:25px;
-    margin:auto;
+    max-Width: 90px;
+    max-height: 60px;
+    margin:2px 0px 2px 0px;
+    color: black;
+    font-size: 16px;
 }
 
 #microphoneButton, #playAudioFileButton, #pauseAudioFileButton, #rewindAudioFileButton {
@@ -79,17 +121,17 @@ button {
 }
 
 #microphoneButton{
-    width:80px;
+    width:70px;
 }
 
 #playAudioFileButton {
-    height:38px;
-    width:50px;
+    height:35px;
+    width:45px;
 }
 
 #pauseAudioFileButton, #rewindAudioFileButton {
-    height:26px;
-    width:38px;
+    height:24px;
+    width:30px;
 }
 
 #microphoneButton:focus, #playAudioFileButton:focus, #pauseAudioFileButton:focus {
@@ -105,6 +147,12 @@ button {
     /*margin:auto;*/
 }
 
+#infoMenuTable td {
+    text-align:center;
+    max-width: 800px;
+    border: 0;
+}
+
 #audioMenuDiv{
     margin:auto;
     text-align:center;
@@ -117,7 +165,7 @@ button {
 /* Styling for select menu */
 .selectMenu {
 	font-weight: bold;
-	padding: 4px 4px 4px 4px;
+	padding: 4px 2px 4px 2px;
 	border-radius: 4px;
     margin-bottom: 3px;
     /*display:block;*/
@@ -159,7 +207,7 @@ button {
     /*width:90%*/;
     border: 2px solid rgb(117, 62, 219);
     background-color: rgb(252, 250, 255);
-    width: 312px;
+    width: 264px;
     font-family: 'League Spartan', sans-serif;
     font-size: 15px;
 }
@@ -188,7 +236,7 @@ button {
       font-size: 16px;
       border: 2px solid rgb(180, 180, 180);
       border-radius: 4px;
-      width: 149px;
+      width: 140px;
       color: rgb(102, 102, 102);
 }
   
