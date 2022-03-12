@@ -11,6 +11,7 @@ Take Stereo Drift to your next house party, live set, or music video 🎵💃�
 
 <img src="https://github.com/stereoDrift/stereoDrift.github.io/blob/main/examples/stereoDriftGif1.gif"/><br />
 <img src="https://github.com/stereoDrift/stereoDrift.github.io/blob/main/examples/stereoDriftGif2.gif"/><br />
+<img src="https://github.com/stereoDrift/stereoDrift.github.io/blob/main/examples/stereoDriftGif3.gif"/><br />
 
 
 Built with javascript / d3.js / HTML / CSS.
