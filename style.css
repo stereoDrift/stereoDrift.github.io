@@ -1,0 +1,212 @@
+body {
+    font-family: 'League Spartan', sans-serif;
+    background-color: #eeeeee;
+    font-size: 16px;
+    margin: 0px 0px 0px 0px;
+}
+
+table {
+    border-collapse: collapse;
+    margin:auto;
+    font-size:1em;
+    /*max-width:95%;*/
+    margin: 0px 0px 0px 0px;
+}
+
+td {
+    border-left: 1px solid rgb(80, 80, 80);
+    border-right: 1px solid rgb(80, 80, 80);
+    padding: 2px 15px 2px 15px;
+}
+
+.hide{
+    display:none;
+}
+
+#navMenuDiv{
+    display: flex;              /* establish flex container */
+    flex-direction: row;     /* stack flex items vertically */
+    /*justify-content: center;    /* center items vertically, in this case */
+    /*align-items: center;        /* center items horizontally, in this case */
+    margin-bottom: 2px;
+}
+
+/* css as usual */
+#svgContainerDiv{
+    background-color: #78B7C5;
+    width: 100vw;
+    height: 65vh;
+    margin: 0;
+}
+
+#mainSvg {
+    width: 100vw;
+    height: 65vh;
+    margin: 10px 0px 0px 0px;
+}
+
+/* condition for screen size minimum of 500px */
+@media (min-width:700px) {
+
+  /* your conditional / responsive CSS inside this condition */
+
+    #svgContainerDiv{
+        height: 85vh;
+    }
+
+    #mainSvg {
+        height: 85vh;
+    }
+
+}
+
+button {
+    border: 2px solid rgb(180, 180, 180);
+    border-radius: 4px;
+    font-family: 'League Spartan', sans-serif;
+}
+
+#toggleMenuButton{
+    width:100px;
+    height:25px;
+    margin:auto;
+}
+
+#microphoneButton, #playAudioFileButton, #pauseAudioFileButton, #rewindAudioFileButton {
+    background-color:#cccccc;
+    color: black;
+    font-size: 16px;
+}
+
+#microphoneButton{
+    width:80px;
+}
+
+#playAudioFileButton {
+    height:38px;
+    width:50px;
+}
+
+#pauseAudioFileButton, #rewindAudioFileButton {
+    height:26px;
+    width:38px;
+}
+
+#microphoneButton:focus, #playAudioFileButton:focus, #pauseAudioFileButton:focus {
+    background-color:rgb(252, 250, 255);
+}
+
+#microphoneButton:hover, #playAudioFileButton:hover, #pauseAudioFileButton:hover, #rewindAudioFileButton:hover {
+    border: 2px solid rgb(180, 151, 233);
+}
+
+#menuTable{
+    text-align:center;
+    /*margin:auto;*/
+}
+
+#audioMenuDiv{
+    margin:auto;
+    text-align:center;
+}
+
+#uploadTrackDiv{
+    font-size: 16px;
+}
+
+/* Styling for select menu */
+.selectMenu {
+	font-weight: bold;
+	padding: 4px 4px 4px 4px;
+	border-radius: 4px;
+    margin-bottom: 3px;
+    /*display:block;*/
+    text-align:center;
+    margin:auto;
+    /*width:90%*/;
+    border: 2px solid rgb(117, 62, 219);
+    background-color: rgb(252, 250, 255);
+    outline: none;
+    color: black;
+    font-size: 16px;
+    font-family: 'League Spartan', sans-serif;
+}
+
+#visualizationMenu, #colourMenu {
+    width: 158px;
+}
+
+/*
+#demoTrackInput {
+    border: 2px solid rgb(117, 62, 219);
+    background-color: rgb(252, 250, 255);
+}
+
+#demoTrackInput:focus {
+    border:2px solid rgb(117, 62, 219);
+    outline: none;
+}
+*/
+
+/* Styling for audio upload file menu */
+#audioFileChooser {
+	padding: 1px 3px 1px 3px;
+	border-radius: 4px;
+    margin-bottom: 0px;
+    /*display:block;*/
+    text-align:center;
+    margin:auto;
+    /*width:90%*/;
+    border: 2px solid rgb(117, 62, 219);
+    background-color: rgb(252, 250, 255);
+    width: 312px;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 15px;
+}
+
+#audioFileChooser button {
+    padding:0px;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+/* Styling for radio input menu */
+.radio-toolbar {
+    margin: 10px;
+}
+  
+.radio-toolbar input[type="radio"] {
+    opacity: 0;
+    position: fixed;
+    width: 0;
+}
+  
+.radio-toolbar label {
+      display: inline-block;
+      background-color: rgb(233, 233, 233);
+      padding: 5px 0px 5px 0px;
+      font-size: 16px;
+      border: 2px solid rgb(180, 180, 180);
+      border-radius: 4px;
+      width: 149px;
+      color: rgb(102, 102, 102);
+}
+  
+
+.radio-toolbar label:hover {
+      color: rgb(0, 0, 0);
+}
+  
+/*
+.radio-toolbar input[type="radio"]:focus + label {
+      border: 2px dashed #444;
+}
+*/
+  
+.radio-toolbar input[type="radio"]:checked + label {
+      background-color: rgb(252, 250, 255);
+      border-color: rgb(117, 62, 219);
+      font-weight: bold;
+      font-size: 16px;
+      color: rgb(0, 0, 0);
+}

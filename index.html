@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Found Sound</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+
+    <body>
+        
+        <audio id="audioElement" src=""></audio>
+
+        <div>
+
+            <div id="navMenuDiv">
+
+                <table id="menuTable">
+                
+                    <tr>
+                        <td>
+                            <div id="audioMenuDiv" class="radio-toolbar">
+                                <input type="radio" id="demoTrackRadio" name="audioType" value="demoTrack" checked>
+                                <label for="demoTrackRadio">Demo Track</label>
+                                <input type="radio" id="uploadTrackRadio" name="audioType" value="uploadTrack">
+                                <label for="uploadTrackRadio">Upload Track</label>
+                            </div>
+                        </td>
+    
+                        <td>
+                            <button id="playAudioFileButton"><i class="fa-solid fa-play"></i></button>
+                            <button id="pauseAudioFileButton"><i class="fa-solid fa-pause"></i></button>
+                            <button id="rewindAudioFileButton"><i class="fa-solid fa-backward-fast"></i></button>
+                        </td>
+    
+                        <td>
+                            <label for="visualizationMenu">Visualization:</label>
+                            <select name="visualizationMenu" id="visualizationMenu" class="userInput selectMenu">
+                                <option value="dancingCircles" selected>Dancing Circles</option>
+                                <option value="waves">Waves</option>
+                                <option value="wire">Wire</option>
+                                <option value="circles">Circles</option>
+                                <option value="circles2">Circles 2</option>
+                                <option value="circles3">Circles 3</option>
+                            </select>
+                        </td>
+    
+                    </tr>
+    
+                    <tr>
+    
+                        <td>
+                            
+                            <div id="demoTrackDiv">
+                                <span>Track: </span>
+                                <select name="demoTrackMenu" onchange="changeDemoTrack()" class="userInput selectMenu" id="demoTrackInput">
+                                    <option value="Homeshake" selected="selected">Homeshake - Like Mariah</option>
+                                    <option value="MenITrust">Men I Trust - Seven</option>
+                                    <option value="Guaraldi">Vince Guaraldi - Rain Rain Go Away</option>
+                                    <option value="Kikagaku">Kikagaku Moyo - Nazo Nazo</option>
+                                    <option value="Cibo">CIBO MATTO - Moonchild</option>
+                                </select>
+                            </div>
+    
+                            <div id="uploadTrackDiv" class="hide">
+                                <input  id="audioFileChooser" type="file" onchange="readFile(this.files);">
+                            </div>
+    
+                        </td>
+    
+                        <td>
+                            <button id="microphoneButton">Mic <i class="fa-solid fa-microphone-lines"></i></button>
+                        </td>
+    
+                        <td>
+                            <label for="colourMenu">Color Palette:</label>
+                            <select name="colourMenu" id="colourMenu" class="userInput selectMenu">
+                                <option value="Zissou">Zissou</option>
+                                <option value="Vapor">Vapor</option>
+                                <option value="Noir">Noir</option>
+                                <option value="Budapest">Budapest</option>
+                                <option value="Sea">Sea</option>
+                                <option value="Cherry">Cherry</option>
+                                <option value="Violet">Violet</option>
+                                <option value="Lakers">Lakers</option>
+                                <option value="Tangerine">Tangerine</option>
+                            </select>
+                        </td>
+    
+                    </tr>
+    
+                </table>
+
+                <button id="toggleMenuButton">Hide Menu <i class="fa-solid fa-eye-slash"></i></button>
+
+            </div>
+
+
+            <div id="svgContainerDiv">
+
+                <svg id="mainSvg">
+
+                </svg>
+
+            </div>
+
+        </div>
+
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="musicVisualizerScript.js"></script>
+
+    </body>
+
+</html>
