@@ -1,7 +1,7 @@
 /* To-dos and potential improvements:
 - How to improve latency when using the microphone to record audio?
 - Allow users to "create" their own music video -- add text, choose colours, upload music, export the file, etc...
-- Add for gradient / "textured" backgrounds?
+- Add gradient / "textured" backgrounds?
 - Feature to import audio from Spotify or YouTube URL?
 - Mobile formatting (menu, shape sizes, etc.)
 - Auto-play next demo track after one track finishes?
@@ -248,7 +248,7 @@ function refresh(){
     getUserInputs();
 
     //try to cancel all outstanding animation frame requests
-    for(i=0; i<10000; i++){
+    for(i=0; i<50000; i++){
         window.cancelAnimationFrame(i);
     }
 
@@ -857,7 +857,7 @@ function runVisualization() {
 
         var frequencyMax = 255;
         var opacity = 1.0;
-        var strokeWidth = 3;
+        var strokeWidth = 2;
 
         var offset1 = 0;
         var offset2 = 60;
