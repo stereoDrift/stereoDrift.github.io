@@ -6,7 +6,8 @@
 - Mobile formatting (menu, shape sizes, etc.)
 - Readme file
 - Auto-play next demo track after one track finishes?
-- Joyploy instead of wire visualization
+- Reduce animation frame rate?
+- Aphen Twin song instead of Guaraldi
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
@@ -60,6 +61,8 @@ var svgHeight = svgContainerDiv.clientHeight;
 var svgWidth = svgContainerDiv.clientWidth;
 
 var infoMenuTable = document.getElementById("infoMenuTable");
+
+//var fps = 30;
 
 //Visualization Inputs
 var barPadding = 1;
@@ -149,7 +152,6 @@ function addEventListeners(){
 }
 
 function setSvgSize(){
-    setTimeout(function() {
         navMenuHeight = document.getElementById('navMenuDiv').clientHeight;
     
         svgContainerDiv.style.height = (window.innerHeight - navMenuHeight - 0)+"px";
@@ -161,8 +163,6 @@ function setSvgSize(){
 
         svgHeight = svgContainerDiv.clientHeight;
         svgWidth = svgContainerDiv.clientWidth;
-        
-    }, delayInMilliseconds);
 }
 
 function toggleMenu(){
@@ -222,9 +222,9 @@ function getUserInputs(){
     } else if(trackChoice == "MenITrust" && trackChanged){
         console.log("change track");
         audioElement.src = "./audio/Men I Trust - Seven.mp3";
-    } else if(trackChoice == "Guaraldi" && trackChanged){
+    } else if(trackChoice == "Aphex" && trackChanged){
         console.log("change track");
-        audioElement.src = "./audio/Vince Guaraldi - Rain Rain Go Away.mp3";
+        audioElement.src = "./audio/Aphex Twin - SsbA.mp3";
     } else if(trackChoice == "Kikagaku" && trackChanged){
         console.log("change track");
         audioElement.src = "./audio/Kikagaku Moyo - Nazo Nazo.mp3";
@@ -250,12 +250,14 @@ function refresh(){
     getUserInputs();
 
     //try to cancel all outstanding animation frame requests
-    for(i=0; i<100000; i++){
+    for(i=0; i<10000; i++){
         window.cancelAnimationFrame(i);
     }
 
     d3.selectAll('*').transition();
     svg.selectAll('*').remove();
+
+    setSvgSize();
     
     runVisualization();
 
@@ -478,12 +480,13 @@ function runVisualization() {
     
         // Continuously loop and update chart with frequency data.
         function renderBarChart() {
-            requestAnimationFrame(renderBarChart);
-        
+            
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(barsFrequencyData);
         
             var heightMultiplier = 2.25;
+
+            requestAnimationFrame(renderBarChart);
 
             // Update d3 chart with new data.
             svg.selectAll('rect')
@@ -530,11 +533,13 @@ function runVisualization() {
     
         // Continuously loop and update chart with frequency data.
         function renderCircleChart() {
-            requestAnimationFrame(renderCircleChart);
-        
+       
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(circlesFrequencyData);
-        
+
+
+            requestAnimationFrame(renderCircleChart);
+
             // Update d3 chart with new data.
             svg.selectAll('circle')
                 .data(circlesFrequencyData)
@@ -575,11 +580,14 @@ function runVisualization() {
     
         // Continuously loop and update chart with frequency data.
         function renderCircle2Chart() {
-            requestAnimationFrame(renderCircle2Chart);
-        
+            
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(circles2FrequencyData);
-        
+
+
+            requestAnimationFrame(renderCircle2Chart);
+
+
             // Update d3 chart with new data.
             svg.selectAll('circle')
                 .data(circles2FrequencyData)
@@ -616,11 +624,12 @@ function runVisualization() {
     
         // Continuously loop and update chart with frequency data.
         function renderCircle3Chart() {
-            requestAnimationFrame(renderCircle3Chart);
-        
+            
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(circles3FrequencyData);
-        
+
+            requestAnimationFrame(renderCircle3Chart);
+
             // Update d3 chart with new data.
             svg.selectAll('circle')
                 .data(circles3FrequencyData)
@@ -674,12 +683,13 @@ function runVisualization() {
         console.log("# of circles: "+count);
 
         // Continuously loop and update chart with frequency data.
-        function renderdancingCirclesChart() {
-            requestAnimationFrame(renderdancingCirclesChart);
-        
+        function renderDancingCirclesChart() {
+            
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(dancingCirclesFrequencyData);
-        
+
+            requestAnimationFrame(renderDancingCirclesChart);
+
             // Update d3 chart with new data.
 
             animateDancingCircles();
@@ -695,7 +705,7 @@ function runVisualization() {
         }
     
         // Run the loop
-        renderdancingCirclesChart();
+        renderDancingCirclesChart();
 
     }
     
@@ -727,13 +737,11 @@ function runVisualization() {
     
         // Continuously loop and update chart with frequency data.
         function renderWavesChart() {
-            requestAnimationFrame(renderWavesChart);
-
-            // Copy frequency data to frequencyData array.
-            //analyser.getByteFrequencyData(wavesFrequencyData);
-
+            
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(barsFrequencyData);
+
+            requestAnimationFrame(renderWavesChart);
 
             var heightMultiplier = 2.25;
 
@@ -798,11 +806,14 @@ function runVisualization() {
 
         // Continuously loop and update chart with frequency data.
         function renderWireChart() {
+            
+            // Copy frequency data to frequencyData array.
+            analyser.getByteFrequencyData(wireFrequencyData);   
+
+
             requestAnimationFrame(renderWireChart);
 
-            // Copy frequency data to frequencyData array.
-            analyser.getByteFrequencyData(wireFrequencyData);
-        
+
             // Update d3 chart with new data.
 
             var t = performance.now();
@@ -939,8 +950,7 @@ function runVisualization() {
     
         // Continuously loop and update chart with frequency data.
         function renderJoyPlotChart() {
-            requestAnimationFrame(renderJoyPlotChart);
-
+            
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(joyPlotFrequencyData);
 
@@ -958,15 +968,8 @@ function runVisualization() {
                 }
             }
 
-            //console.log("data1 array: "+data1);
+            requestAnimationFrame(renderJoyPlotChart);
 
-            /*
-            svg.selectAll("path")
-                .attr("d", line(joyPlotFrequencyData));
-            */
-
-            // Modify the line
-            //svg.selectAll("path")
             path1
                 .attr("d", d3.area()
                     .x(function(d,i) { return x(i) })
