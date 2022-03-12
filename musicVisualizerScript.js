@@ -4,10 +4,8 @@
 - Add for gradient / "textured" backgrounds?
 - Feature to import audio from Spotify or YouTube URL?
 - Mobile formatting (menu, shape sizes, etc.)
-- Readme file
 - Auto-play next demo track after one track finishes?
-- Reduce animation frame rate?
-- Aphen Twin song instead of Guaraldi
+- Reduce animation frame rate to improve performance / reduce compute?
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
