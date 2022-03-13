@@ -3,7 +3,7 @@
 Live version: <b>https://stereodrift.github.io/</b>
 
 * Select audio -- a demo song, your own uploaded track, or live microphone input
-* Hit play
+* Hit ▶️
 * Choose a visualization style and color palette
 * Enjoy :)
 
