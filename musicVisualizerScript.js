@@ -94,6 +94,8 @@ var wavesFrequencyData = new Uint8Array(wavesRows);
 var wireFrequencyData = new Uint8Array(1);
 var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 
+var shapeSizeMultiplier = 1;
+
 
 //Colour palettes -- background, shape fill, shape outline
 var palette1 = ["#78B7C5", "#EBCC2A", "rgb(59,154,178)"];
@@ -418,6 +420,44 @@ function playAudioFile(file) {
 
 function runVisualization() {
 
+    //reduce shape size on small screens & mobile devices
+
+    if(svgWidth < 500){
+        barPadding = 0;
+        numBars = 200;
+        numCircles = 15;
+        numCircles2 = 50;
+        numCircles3 = 200;
+        circles3Cols = 40;
+        circles3Rows = numCircles3 / circles3Cols;
+        circles3BottomMargin = 50;
+    
+        numDancingCircles = 100;
+        dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
+    
+        wavesRows = 8;
+        wavesCols = 3;
+        wavesData = d3.range(1, wavesRows);
+    
+        wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
+    
+        joyPlotN = 300;
+        joyPlotRows = 3;
+        joyPlotCols = joyPlotN / joyPlotRows;
+    
+        barsFrequencyData = new Uint8Array(numBars);
+        circlesFrequencyData = new Uint8Array(numCircles);
+        circles2FrequencyData = new Uint8Array(numCircles2);
+        circles3FrequencyData = new Uint8Array(numCircles3);
+        dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
+        wavesFrequencyData = new Uint8Array(wavesRows);
+        wireFrequencyData = new Uint8Array(1);
+        joyPlotFrequencyData = new Uint8Array(joyPlotN);
+    
+        shapeSizeMultiplier = 0.33;
+    }
+
+    //select colours based on user input
     if(colourChoice == "Zissou"){
         backgroundColour = palette1[0];
         fillColour = palette1[1];
@@ -541,7 +581,7 @@ function runVisualization() {
             svg.selectAll('circle')
                 .data(circlesFrequencyData)
                 .attr('r', function(d) {
-                    return Math.pow(d*volumeMultiplier,0.85)*1.5;
+                    return Math.pow(d*volumeMultiplier*shapeSizeMultiplier,0.85)*1.5;
                 })
                 .attr('fill', fillColour);
         }
@@ -589,7 +629,7 @@ function runVisualization() {
             svg.selectAll('circle')
                 .data(circles2FrequencyData)
                 .attr('r', function(d) {
-                    return Math.pow(d*volumeMultiplier,1.3)*0.08;
+                    return Math.pow(d*volumeMultiplier*shapeSizeMultiplier,1.3)*0.08;
                 })
                 .attr('fill', fillColour);
         }
@@ -637,7 +677,7 @@ function runVisualization() {
                     return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
                 })
                 .attr('r', function(d) {
-                    return Math.max(Math.pow(d*volumeMultiplier,1.1)*0.4-60,0);
+                    return Math.max(Math.pow(d*volumeMultiplier*shapeSizeMultiplier,1.1)*0.4-60,0);
                 })
                 .attr('fill', fillColour);
         }
@@ -700,7 +740,7 @@ function runVisualization() {
             svg.selectAll("circle")
                 .attr('r', function(d, i) {
                     if(visualizationChoice == "dancingCircles"){
-                        return Math.max( 0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier,0.95) -60 );
+                        return Math.max( 0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.95) -60 );
                     } else {
                         return 0;
                     }

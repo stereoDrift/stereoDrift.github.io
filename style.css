@@ -59,7 +59,7 @@ td {
     background-color: rgb(252, 250, 255);
     outline: none;
     color: black;
-    font-size: 14px;
+    font-size: 11px;
     font-family: 'League Spartan', sans-serif;
 }
 
@@ -128,7 +128,7 @@ button {
 
 /* Styling for audio upload file menu */
 #audioFileChooser {
-	padding: 1px 3px 1px 3px;
+	padding: 1px 1px 1px 1px;
 	border-radius: 4px;
     margin-bottom: 0px;
     /*display:block;*/
@@ -170,6 +170,14 @@ button {
     width:30px;
 }
 
+#toggleMenuButton{
+    max-Width: 75px;
+    max-height: 60px;
+    margin:2px 0px 2px 0px;
+    color: black;
+    font-size: 12px;
+}
+
 /* condition for screen size minimum of [x] px */
 @media (min-width:650px) {
 
@@ -207,6 +215,7 @@ button {
 
     .selectMenu {
         font-size: 16px;
+        padding: 1px 3px 1px 3px;
     }
 
     #visualizationMenu, #colourMenu {
@@ -232,19 +241,16 @@ button {
         width:70px;
     }
 
+    #toggleMenuButton{
+        font-size: 16px;
+        max-Width: 125px;
+    }
+
 }
 
 a:link {
     text-decoration: none;
     color:rgb(55, 60, 133);
-}
-
-#toggleMenuButton{
-    max-Width: 125px;
-    max-height: 60px;
-    margin:2px 0px 2px 0px;
-    color: black;
-    font-size: 16px;
 }
 
 #microphoneButton:focus, #playAudioFileButton:focus, #pauseAudioFileButton:focus {
