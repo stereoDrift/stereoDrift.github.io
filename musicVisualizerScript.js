@@ -454,7 +454,7 @@ function runVisualization() {
         wireFrequencyData = new Uint8Array(1);
         joyPlotFrequencyData = new Uint8Array(joyPlotN);
     
-        shapeSizeMultiplier = 0.33;
+        shapeSizeMultiplier = 0.55;
     }
 
     //select colours based on user input
@@ -534,7 +534,7 @@ function runVisualization() {
                 })
                 .attr('height', function(d) {
                     //return d;
-                    return d*heightMultiplier*volumeMultiplier;
+                    return d*heightMultiplier*volumeMultiplier*shapeSizeMultiplier;
                 })
                 .attr('fill', fillColour);
         }
