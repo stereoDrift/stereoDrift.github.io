@@ -427,7 +427,7 @@ function runVisualization() {
         numBars = 200;
         numCircles = 15;
         numCircles2 = 50;
-        numCircles3 = 200;
+        numCircles3 = 240;
         circles3Cols = 40;
         circles3Rows = numCircles3 / circles3Cols;
         circles3BottomMargin = 50;
@@ -454,7 +454,7 @@ function runVisualization() {
         wireFrequencyData = new Uint8Array(1);
         joyPlotFrequencyData = new Uint8Array(joyPlotN);
     
-        shapeSizeMultiplier = 0.55;
+        shapeSizeMultiplier = 0.6;
     }
 
     //select colours based on user input
