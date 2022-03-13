@@ -175,7 +175,7 @@ function toggleMenu(){
             toggleMenuButton.innerHTML = "Show Menu <i class=\"fa-solid fa-eye\"></i>";
             showMenu = false;
             setSvgSize();
-        }, 500);
+        }, 200);
 
     } else {
         menuTable.classList.remove("hide");
@@ -256,7 +256,6 @@ function refresh(){
     svg.selectAll('*').remove();
 
     setSvgSize();
-    
     runVisualization();
 
 }
@@ -631,6 +630,12 @@ function runVisualization() {
             // Update d3 chart with new data.
             svg.selectAll('circle')
                 .data(circles3FrequencyData)
+                .attr('cx', function (d, i) {
+                    return (i % circles3Cols) * (svgWidth / circles3Cols);
+                })
+                .attr('cy', function (d, i) {
+                    return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
+                })
                 .attr('r', function(d) {
                     return Math.max(Math.pow(d*volumeMultiplier,1.1)*0.4-60,0);
                 })
@@ -949,6 +954,9 @@ function runVisualization() {
         // Continuously loop and update chart with frequency data.
         function renderJoyPlotChart() {
             
+            x = d3.scaleLinear().domain([0, joyPlotCols]).range([0, svgWidth+10]);
+            y = d3.scaleLinear().domain([0, frequencyMax*chartHeightMultiplier]).range([svgHeight, 0]);
+
             // Copy frequency data to frequencyData array.
             analyser.getByteFrequencyData(joyPlotFrequencyData);
 
