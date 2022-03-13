@@ -176,6 +176,8 @@ button {
     margin:2px 0px 2px 0px;
     color: black;
     font-size: 12px;
+    text-align:center;
+    padding:0px;
 }
 
 /* condition for screen size minimum of [x] px */
@@ -244,6 +246,7 @@ button {
     #toggleMenuButton{
         font-size: 16px;
         max-Width: 125px;
+        padding:2px;
     }
 
 }
