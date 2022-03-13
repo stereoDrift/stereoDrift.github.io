@@ -120,6 +120,12 @@ td {
     font-size: 14px;
 }
 
+button {
+    border: 2px solid rgb(180, 180, 180);
+    border-radius: 4px;
+    font-family: 'League Spartan', sans-serif;
+}
+
 /* Styling for audio upload file menu */
 #audioFileChooser {
 	padding: 1px 3px 1px 3px;
@@ -140,6 +146,28 @@ td {
     padding:0px;
     font-size: 14px;
     margin-left: 5px;
+}
+
+#microphoneButton, #playAudioFileButton, #pauseAudioFileButton, #rewindAudioFileButton {
+    background-color:#cccccc;
+    color: black;
+    font-size: 14px;
+    text-align: center;
+    padding: 0px;
+}
+
+#microphoneButton{
+    width:50px;
+}
+
+#playAudioFileButton {
+    height:32px;
+    width:38px;
+}
+
+#pauseAudioFileButton, #rewindAudioFileButton {
+    height:24px;
+    width:30px;
 }
 
 /* condition for screen size minimum of [x] px */
@@ -195,15 +223,16 @@ td {
         font-size: 15px;
     }
 
+    #microphoneButton, #playAudioFileButton, #pauseAudioFileButton, #rewindAudioFileButton {
+        font-size: 16px;
+        padding: 2px;
+    }
+    
+    #microphoneButton{
+        width:70px;
+    }
+
 }
-
-button {
-    border: 2px solid rgb(180, 180, 180);
-    border-radius: 4px;
-    font-family: 'League Spartan', sans-serif;
-}
-
-
 
 a:link {
     text-decoration: none;
@@ -216,26 +245,6 @@ a:link {
     margin:2px 0px 2px 0px;
     color: black;
     font-size: 16px;
-}
-
-#microphoneButton, #playAudioFileButton, #pauseAudioFileButton, #rewindAudioFileButton {
-    background-color:#cccccc;
-    color: black;
-    font-size: 16px;
-}
-
-#microphoneButton{
-    width:70px;
-}
-
-#playAudioFileButton {
-    height:32px;
-    width:38px;
-}
-
-#pauseAudioFileButton, #rewindAudioFileButton {
-    height:24px;
-    width:30px;
 }
 
 #microphoneButton:focus, #playAudioFileButton:focus, #pauseAudioFileButton:focus {
