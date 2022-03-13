@@ -534,7 +534,7 @@ function runVisualization() {
                 })
                 .attr('height', function(d) {
                     //return d;
-                    return d*heightMultiplier*volumeMultiplier*shapeSizeMultiplier;
+                    return d*heightMultiplier*volumeMultiplier*(shapeSizeMultiplier*0.7);
                 })
                 .attr('fill', fillColour);
         }
@@ -677,7 +677,7 @@ function runVisualization() {
                     return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
                 })
                 .attr('r', function(d) {
-                    return Math.max(Math.pow(d*volumeMultiplier*shapeSizeMultiplier,1.1)*0.4-60,0);
+                    return Math.max(Math.pow(d*volumeMultiplier*(shapeSizeMultiplier*1.5),1.1)*0.4-60,0);
                 })
                 .attr('fill', fillColour);
         }
