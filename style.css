@@ -116,6 +116,32 @@ td {
     background-color:none;
 }
 
+#uploadTrackDiv{
+    font-size: 14px;
+}
+
+/* Styling for audio upload file menu */
+#audioFileChooser {
+	padding: 1px 3px 1px 3px;
+	border-radius: 4px;
+    margin-bottom: 0px;
+    /*display:block;*/
+    text-align:center;
+    margin:auto;
+    /*width:90%*/;
+    border: 2px solid rgb(117, 62, 219);
+    background-color: rgb(252, 250, 255);
+    width: 175px;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 14px;
+}
+
+#audioFileChooser button {
+    padding:0px;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
 /* condition for screen size minimum of [x] px */
 @media (min-width:650px) {
 
@@ -157,6 +183,16 @@ td {
 
     #visualizationMenu, #colourMenu {
         width: 140px;
+    }
+
+    #uploadTrackDiv{
+        font-size: 16px;
+    }
+    
+    /* Styling for audio upload file menu */
+    #audioFileChooser {
+        width: 250px;
+        font-size: 15px;
     }
 
 }
@@ -210,49 +246,9 @@ a:link {
     border: 2px solid rgb(180, 151, 233);
 }
 
-
-
 #audioMenuDiv{
     margin:auto;
     text-align:center;
-}
-
-#uploadTrackDiv{
-    font-size: 16px;
-}
-
-/*
-#demoTrackInput {
-    border: 2px solid rgb(117, 62, 219);
-    background-color: rgb(252, 250, 255);
-}
-
-#demoTrackInput:focus {
-    border:2px solid rgb(117, 62, 219);
-    outline: none;
-}
-*/
-
-/* Styling for audio upload file menu */
-#audioFileChooser {
-	padding: 1px 3px 1px 3px;
-	border-radius: 4px;
-    margin-bottom: 0px;
-    /*display:block;*/
-    text-align:center;
-    margin:auto;
-    /*width:90%*/;
-    border: 2px solid rgb(117, 62, 219);
-    background-color: rgb(252, 250, 255);
-    width: 250px;
-    font-family: 'League Spartan', sans-serif;
-    font-size: 15px;
-}
-
-#audioFileChooser button {
-    padding:0px;
-    font-size: 14px;
-    margin-left: 5px;
 }
 
 /* Styling for radio input menu */
