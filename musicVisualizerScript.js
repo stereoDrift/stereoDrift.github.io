@@ -458,7 +458,7 @@ function runVisualization() {
         joyPlotFrequencyData = new Uint8Array(joyPlotN);
     
         shapeSizeMultiplier = 0.45;
-        maxCircleSize = 40;
+        maxCircleSize = 60;
     }
 
     //select colours based on user input
