@@ -6,6 +6,8 @@
 - Mobile formatting (menu, shape sizes, etc.)
 - Auto-play next demo track after one track finishes?
 - Reduce animation frame rate to improve performance / reduce compute?
+- Less sensitivity to bass&percussion / more sensitivity to individual notes?
+- Add "sensitivity input"?
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
@@ -95,6 +97,7 @@ var wireFrequencyData = new Uint8Array(1);
 var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 
 var shapeSizeMultiplier = 1;
+var maxCircleSize = 100;
 
 
 //Colour palettes -- background, shape fill, shape outline
@@ -454,7 +457,8 @@ function runVisualization() {
         wireFrequencyData = new Uint8Array(1);
         joyPlotFrequencyData = new Uint8Array(joyPlotN);
     
-        shapeSizeMultiplier = 0.6;
+        shapeSizeMultiplier = 0.45;
+        maxCircleSize = 40;
     }
 
     //select colours based on user input
@@ -534,7 +538,7 @@ function runVisualization() {
                 })
                 .attr('height', function(d) {
                     //return d;
-                    return d*heightMultiplier*volumeMultiplier*(shapeSizeMultiplier*0.7);
+                    return d*heightMultiplier*volumeMultiplier*(shapeSizeMultiplier*0.8);
                 })
                 .attr('fill', fillColour);
         }
@@ -677,7 +681,7 @@ function runVisualization() {
                     return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
                 })
                 .attr('r', function(d) {
-                    return Math.max(Math.pow(d*volumeMultiplier*(shapeSizeMultiplier*1.5),1.1)*0.4-60,0);
+                    return Math.min(maxCircleSize, Math.max(Math.pow(d*volumeMultiplier*(shapeSizeMultiplier*1.2),1.05)*0.4-(50*shapeSizeMultiplier),0));
                 })
                 .attr('fill', fillColour);
         }
@@ -702,26 +706,6 @@ function runVisualization() {
             .attr("stroke", strokeColour)
             .attr("fill-opacity", 0.65);
     
-        /*
-        timer = d3.timer(function(t) {
-            console.log("run timer function");
-            timerFlag = true;
-
-            if(visualizationChoice == "dancingCircles"){
-                t /= 10000;
-
-                svg.selectAll("circle").attr("cx", function(d) {
-                    return 565 * Math.sin(3 * d * t) + svgWidth/2;
-                });
-    
-                svg.selectAll("circle").attr("cy", function(d) {
-                    return 300 * Math.sin(2 * d * t) + svgHeight/2;
-                });
-            }
-
-        });
-        */
-
         count = d3.selectAll("circle").size()
         console.log("# of circles: "+count);
 
@@ -740,7 +724,7 @@ function runVisualization() {
             svg.selectAll("circle")
                 .attr('r', function(d, i) {
                     if(visualizationChoice == "dancingCircles"){
-                        return Math.max( 0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.95) -60 );
+                        return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.95) - (60*shapeSizeMultiplier) ));
                     } else {
                         return 0;
                     }
