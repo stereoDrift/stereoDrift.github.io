@@ -458,8 +458,9 @@ function runVisualization() {
         joyPlotFrequencyData = new Uint8Array(joyPlotN);
     
         shapeSizeMultiplier = 0.45;
-        maxCircleSize = 60;
     }
+
+    maxCircleSize = svgWidth * 0.15;
 
     //select colours based on user input
     if(colourChoice == "Zissou"){
