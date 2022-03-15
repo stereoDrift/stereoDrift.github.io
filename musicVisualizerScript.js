@@ -1072,14 +1072,23 @@ function runVisualization() {
 
         var gridFrequencyData = new Uint8Array(numCells);
 
+        //set max range of colours, based on frequency input 
+        var hueRange = 80;
+        var hueStart = fillHue - hueRange/2;
+        var hueEnd = fillHue + hueRange/2;
+
+        var hueScale = d3.scaleLinear()
+            .domain([0, 255])
+            .range([hueStart, hueEnd]);
+
         //draw initial cell grid
         var rects = svg.selectAll('rect')
             .data(gridFrequencyData)
             .enter()
             .append('rect')
-            .attr("fill", fillColour)
             .attr("fill-opacity",maxOpacity)
             .attr("stroke", strokeColour)
+            .attr("fill", fillColour)
             .attr("stroke-width", minStrokeWidth)
             .attr("height",cellHeight)
             .attr("width",cellWidth)
@@ -1100,6 +1109,13 @@ function runVisualization() {
 
             rects
                 .data(gridFrequencyData)
+                .attr("fill", function(d) {
+                    if(colourChoice == "Noir"){
+                        return "white";
+                    } else {
+                        return d3.hsl(hueScale(d), 1, 0.5);
+                    }
+                })
                 .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/15+minStrokeWidth)})
                 .attr("fill-opacity",function(d) {
                     return Math.min(d/100,1)*maxOpacity;
@@ -1115,28 +1131,10 @@ function runVisualization() {
     else if(visualizationChoice == "rings"){
         console.log("Run rings visualization");
 
+        //set max range of colours, based on frequency input 
         var hueRange = 250;
         var hueStart = fillHue - hueRange/2;
         var hueEnd = fillHue + hueRange/2;
-
-        /*
-        //Set hueStart value -- cycle between 0 and 360
-        if(fillHue - hueRange/2 < 0){
-            var negValue = Math.abs(fillHue - hueRange/2);
-            hueStart = 360 - negValue;
-        } else {
-            hueStart = fillHue - hueRange/2;
-        }
-
-        //Set hueEnd value -- cycle between 0 and 360
-        if(fillHue + hueRange/2 > 360){
-            var posValue = fillHue + hueRange/2 - 360;
-            hueEnd = posValue;
-        } else {
-            hueEnd = fillHue + hueRange/2;
-        }
-        */
-
 
         analyser.smoothingTimeConstant = 0.85;
 
