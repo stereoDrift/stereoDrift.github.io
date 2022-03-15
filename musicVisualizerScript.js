@@ -94,8 +94,6 @@ var numCells = numCellHeight * numCellWidth;
 var cellHeight = svgHeight / numCellHeight;
 var cellWidth = svgWidth / numCellWidth;
 
-var gridFrequencyData = new Uint8Array(numCells);
-
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
 var circles2FrequencyData = new Uint8Array(numCircles2);
@@ -1057,6 +1055,8 @@ function runVisualization() {
 
         var maxOpacity = 1;
         var strokeWidth = 0.5;
+
+        var gridFrequencyData = new Uint8Array(numCells);
 
         //draw initial cell grid
         var rects = svg.selectAll('rect')
