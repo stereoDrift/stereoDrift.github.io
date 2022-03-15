@@ -88,10 +88,10 @@ var joyPlotN = 600;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
-var numCellWidth = 34;
-var numCellHeight = 30;
+var numCellWidth = 25;
+var numCellHeight = 20;
 var numCells = numCellHeight * numCellWidth;
-var maxCellStrokeWidth = 10;
+var maxCellStrokeWidth = 7;
 
 var numRings = 10;
 
@@ -1053,13 +1053,13 @@ function runVisualization() {
     else if(visualizationChoice == "grid"){
         console.log("Run grid visualization");
 
-        analyser.smoothingTimeConstant = 0.8;
+        analyser.smoothingTimeConstant = 0.94;
 
         if(svgWidth < 500){
-            numCellWidth = 20;
-            numCellHeight = 40;
+            numCellWidth = 10;
+            numCellHeight = 20;
             numCells = numCellHeight * numCellWidth;
-            maxCellStrokeWidth = 5;
+            maxCellStrokeWidth = 3;
         }
 
         var cellWidth = svgWidth / numCellWidth;
@@ -1067,7 +1067,7 @@ function runVisualization() {
 
         console.log("numCellHeight: "+numCellHeight+", cellHeight: "+cellHeight+", "+" svgHeight: "+svgHeight);
 
-        var maxOpacity = 1;
+        var maxOpacity = 0.7;
         var minStrokeWidth = 0.1;
 
         var gridFrequencyData = new Uint8Array(numCells);
