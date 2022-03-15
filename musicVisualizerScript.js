@@ -91,7 +91,7 @@ var joyPlotCols = joyPlotN / joyPlotRows;
 var numCellWidth = 34;
 var numCellHeight = 30;
 var numCells = numCellHeight * numCellWidth;
-var maxCellStrokeWidth = 15;
+var maxCellStrokeWidth = 10;
 
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
@@ -1047,7 +1047,7 @@ function runVisualization() {
             numCellWidth = 20;
             numCellHeight = 40;
             numCells = numCellHeight * numCellWidth;
-            maxCellStrokeWidth = 6;
+            maxCellStrokeWidth = 5;
         }
 
         var cellWidth = svgWidth / numCellWidth;
