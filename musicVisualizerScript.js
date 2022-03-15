@@ -438,8 +438,8 @@ function runVisualization() {
         numBars = 200;
         numCircles = 15;
         numCircles2 = 50;
-        numCircles3 = 280;
-        circles3Cols = 40;
+        numCircles3 = 175;
+        circles3Cols = 25;
         circles3Rows = numCircles3 / circles3Cols;
         circles3BottomMargin = 50;
     
@@ -1156,7 +1156,7 @@ function runVisualization() {
             var radiusScale = d3.scalePow()
                 .exponent(1.10)    
                 .domain([0, 255])
-                .range([0, svgHeight/2 - svgHeight*0.1]);
+                .range([0, Math.min(svgHeight, svgWidth) /2 - Math.min(svgHeight, svgWidth)*0.05]);
 
             /*
             var radiusScale = d3.scaleLinear()
