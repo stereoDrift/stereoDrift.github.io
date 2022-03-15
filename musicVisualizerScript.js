@@ -88,11 +88,10 @@ var joyPlotN = 600;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
-var numCellHeight = 35;
-var numCellWidth = Math.floor(1024/numCellHeight);
+var numCellWidth = 34;
+var numCellHeight = 30;
 var numCells = numCellHeight * numCellWidth;
-var cellHeight = svgHeight / numCellHeight;
-var cellWidth = svgWidth / numCellWidth;
+var maxCellStrokeWidth = 15;
 
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
@@ -104,7 +103,6 @@ var wireFrequencyData = new Uint8Array(1);
 var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 
 var shapeSizeMultiplier = 1;
-var maxCircleSize = 100;
 
 
 //Colour palettes -- background, shape fill, shape outline
@@ -274,7 +272,7 @@ function refresh(){
 
 function useMicrophone(){
 
-    volumeMultiplier = 1;
+    volumeMultiplier = 0.95;
 
     //toggle flag true/false each time the button is pressed
     if(microphoneOnFlag == false){
@@ -467,7 +465,7 @@ function runVisualization() {
         shapeSizeMultiplier = 0.45;
     }
 
-    maxCircleSize = Math.min(svgWidth * 0.15, svgHeight*0.15);
+    var maxCircleSize = Math.min(svgWidth * 0.10, svgHeight*0.10);
 
     //select colours based on user input
     if(colourChoice == "Zissou"){
@@ -732,7 +730,7 @@ function runVisualization() {
             svg.selectAll("circle")
                 .attr('r', function(d, i) {
                     if(visualizationChoice == "dancingCircles"){
-                        return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.95) - (60*shapeSizeMultiplier) ));
+                        return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.93) - (60*shapeSizeMultiplier) ));
                     } else {
                         return 0;
                     }
@@ -1046,15 +1044,19 @@ function runVisualization() {
         analyser.smoothingTimeConstant = 0.8;
 
         if(svgWidth < 500){
-            numCellHeight = 40;
             numCellWidth = 20;
+            numCellHeight = 40;
             numCells = numCellHeight * numCellWidth;
-            cellHeight = svgHeight / numCellHeight;
-            cellWidth = svgWidth / numCellWidth;
+            maxCellStrokeWidth = 6;
         }
 
+        var cellWidth = svgWidth / numCellWidth;
+        var cellHeight = svgHeight / numCellHeight;
+
+        console.log("numCellHeight: "+numCellHeight+", cellHeight: "+cellHeight+", "+" svgHeight: "+svgHeight);
+
         var maxOpacity = 1;
-        var strokeWidth = 0.5;
+        var minStrokeWidth = 0.1;
 
         var gridFrequencyData = new Uint8Array(numCells);
 
@@ -1066,7 +1068,7 @@ function runVisualization() {
             .attr("fill", fillColour)
             .attr("fill-opacity",maxOpacity)
             .attr("stroke", strokeColour)
-            .attr("stroke-width", strokeWidth)
+            .attr("stroke-width", minStrokeWidth)
             .attr("height",cellHeight)
             .attr("width",cellWidth)
             .attr("x",function(d,i){
@@ -1086,7 +1088,7 @@ function runVisualization() {
 
             rects
                 .data(gridFrequencyData)
-                .attr("stroke-width",function(d){return d/15})
+                .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/15+minStrokeWidth)})
                 .attr("fill-opacity",function(d) {
                     return Math.min(d/100,1)*maxOpacity;
                 });
