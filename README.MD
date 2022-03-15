@@ -13,14 +13,14 @@ Take Stereo Drift to your next house party, live set, or music video 🎵💃�
 <img src="https://github.com/stereoDrift/stereoDrift.github.io/blob/main/examples/stereoDriftGif2.gif"/><br />
 <img src="https://github.com/stereoDrift/stereoDrift.github.io/blob/main/examples/stereoDriftGif3.gif"/><br />
 
-Method, Sources, and Inspiration
+Method, References, and Inspiration
 =======
 
 * Javascript / web audio API used to import and analyze the frequency of audio files
 * d3.js used for visualization (drawing shapes, binding audio frequency data to the shapes, animation)
 * HTML / CSS for page markup and styling
 
-Sources and inspiration:
+References and inspiration:
 
 * https://bignerdranch.com/blog/music-visualization-with-d3-js/
 * https://jfire.io/animations/

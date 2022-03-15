@@ -93,6 +93,8 @@ var numCellHeight = 30;
 var numCells = numCellHeight * numCellWidth;
 var maxCellStrokeWidth = 10;
 
+var numRings = 10;
+
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
 var circles2FrequencyData = new Uint8Array(numCircles2);
@@ -101,6 +103,7 @@ var dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
 var wavesFrequencyData = new Uint8Array(wavesRows);
 var wireFrequencyData = new Uint8Array(1);
 var joyPlotFrequencyData = new Uint8Array(joyPlotN);
+var ringsFrequencyData = new Uint8Array(numRings);
 
 var shapeSizeMultiplier = 1;
 
@@ -108,7 +111,7 @@ var shapeSizeMultiplier = 1;
 //Colour palettes -- background, shape fill, shape outline
 var palette1 = ["#78B7C5", "#EBCC2A", "rgb(59,154,178)"];
 var palette2 = ['#F4ECFF', "#57EBF5", "#FFAAF6"];
-var palette3 = ["rgb(0,0,0)", "rgb(255,255,255)", "rgb(100,100,100)"];
+var palette3 = ["rgb(0,0,0)", "#FFFFFF", "rgb(100,100,100)"];
 var palette4 = ["#5B1A18", "#FD6467", "#F1BB7B"];
 var palette5 = ["#2f5575", "#94f0dc", "rgb(255,255,255)"];
 var palette6 = ["#f1faee", "#e63946", "#a8dadc"];
@@ -505,6 +508,15 @@ function runVisualization() {
         fillColour = palette9[1];
         strokeColour = palette9[2];
     }
+
+    //convert fill colour HEX into RGB instead
+
+    var fillR = parseInt(fillColour.substr(1,2), 16); // Grab the hex representation of red (chars 1-2) and convert to decimal (base 10).
+    var fillG = parseInt(fillColour.substr(3,2), 16);
+    var fillB = parseInt(fillColour.substr(5,2), 16);
+
+    //get Hue of RGB fill colour (first element of HSL -- Hue, Saturation, Lightness)
+    var fillHue = rgbToHsl(fillR, fillG, fillB)[0] * 360;
 
     //set background colour
     svgContainerDiv.style.backgroundColor = backgroundColour;
@@ -1099,6 +1111,101 @@ function runVisualization() {
         renderGridChart();
 
     }
+
+    else if(visualizationChoice == "rings"){
+        console.log("Run rings visualization");
+
+        var hueRange = 250;
+        var hueStart = fillHue - hueRange/2;
+        var hueEnd = fillHue + hueRange/2;
+
+        /*
+        //Set hueStart value -- cycle between 0 and 360
+        if(fillHue - hueRange/2 < 0){
+            var negValue = Math.abs(fillHue - hueRange/2);
+            hueStart = 360 - negValue;
+        } else {
+            hueStart = fillHue - hueRange/2;
+        }
+
+        //Set hueEnd value -- cycle between 0 and 360
+        if(fillHue + hueRange/2 > 360){
+            var posValue = fillHue + hueRange/2 - 360;
+            hueEnd = posValue;
+        } else {
+            hueEnd = fillHue + hueRange/2;
+        }
+        */
+
+
+        analyser.smoothingTimeConstant = 0.85;
+
+        if(svgWidth < 500){
+
+        }
+
+        // Continuously loop and update chart with frequency data.
+        function renderRingsChart() {
+    
+            // Copy frequency data to array.
+            analyser.getByteFrequencyData(ringsFrequencyData);
+
+            requestAnimationFrame(renderRingsChart);
+
+            // scale things to fit
+            var radiusScale = d3.scalePow()
+                .exponent(1.10)    
+                .domain([0, 255])
+                .range([0, svgHeight/2 - svgHeight*0.1]);
+
+            /*
+            var radiusScale = d3.scaleLinear()
+                .domain([0, 255])
+                .range([0, svgHeight/2 - svgHeight*0.1]);
+            */
+
+            // d3.max(ringsFrequencyData)
+
+            var hueScale = d3.scaleLinear()
+                .domain([0, d3.max(ringsFrequencyData)])
+                .range([hueStart, hueEnd]);
+
+            // update d3 chart with new data
+            var rings = svg.selectAll('circle')
+                .data(ringsFrequencyData);
+
+            rings.enter().append('circle');
+
+            rings
+                .attr("r", function(d) { return radiusScale(d); })
+                .attr("cx", svgWidth / 2)
+                .attr("cy", svgHeight / 2)
+                .attr("fill", function(d){
+                    if(colourChoice == "Noir"){
+                        return "white";
+                    } else {
+                        return d3.hsl(hueScale(d), 1, 0.5);
+                    }
+                })
+                .attr("fill-opacity",0.08)
+                .attr("stroke-width", 4)
+                .attr("stroke-opacity", 0.7)
+                .attr("stroke", function(d) {
+                    if(colourChoice == "Noir"){
+                        return "white";
+                    } else {
+                        return d3.hsl(hueScale(d), 1, 0.5);
+                    }
+                });
+
+            rings.exit().remove(); 
+
+        }
+
+        // Run the loop
+        renderRingsChart();
+
+    }
     
 }
 
@@ -1137,6 +1244,27 @@ function kernelEpanechnikov(k) {
     return function(v) {
       return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
     };
+}
+
+function rgbToHsl(r, g, b){
+    r /= 255, g /= 255, b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if(max == min){
+        h = s = 0; // achromatic
+    }else{
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch(max){
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return [h, s, l];
 }
 
 
