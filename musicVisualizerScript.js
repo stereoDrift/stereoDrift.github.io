@@ -1116,7 +1116,7 @@ function runVisualization() {
                         return d3.hsl(hueScale(d), 1, 0.5);
                     }
                 })
-                .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/15+minStrokeWidth)})
+                .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/30+minStrokeWidth)})
                 .attr("fill-opacity",function(d) {
                     return Math.min(d/100,1)*maxOpacity;
                 });
