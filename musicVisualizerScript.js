@@ -7,7 +7,8 @@
 - Auto-play next demo track after one track finishes?
 - Reduce animation frame rate to improve performance / reduce compute?
 - Less sensitivity to bass&percussion / more sensitivity to individual notes?
-- Add "sensitivity input"?
+- Add "advanced options" menu with toggles for sensitivity, etc...?
+- Add keyboard shortcuts (play/pause/restart song, change visual, change colour, hide/show menu)
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
@@ -430,7 +431,7 @@ function runVisualization() {
         numBars = 200;
         numCircles = 15;
         numCircles2 = 50;
-        numCircles3 = 240;
+        numCircles3 = 280;
         circles3Cols = 40;
         circles3Rows = numCircles3 / circles3Cols;
         circles3BottomMargin = 50;
@@ -460,7 +461,7 @@ function runVisualization() {
         shapeSizeMultiplier = 0.45;
     }
 
-    maxCircleSize = svgWidth * 0.15;
+    maxCircleSize = Math.min(svgWidth * 0.15, svgHeight*0.15);
 
     //select colours based on user input
     if(colourChoice == "Zissou"){
@@ -1030,6 +1031,64 @@ function runVisualization() {
         // Run the loop
         renderJoyPlotChart();
 
+
+    }
+
+    else if(visualizationChoice == "grid"){
+        console.log("Run grid visualization");
+
+        analyser.smoothingTimeConstant = 0.8;
+
+        var numCellHeight = 30;
+        var numCellWidth = Math.floor(1024/numCellHeight);
+        var numCells = numCellHeight * numCellWidth;
+        var cellHeight = svgHeight / numCellHeight;
+        var cellWidth = svgWidth / numCellWidth;
+
+        var gridFrequencyData = new Uint8Array(numCells);
+
+        var maxOpacity = 1;
+        var strokeWidth = 0.5;
+
+
+        //draw initial cell grid
+        var rects = svg.selectAll('rect')
+            .data(gridFrequencyData)
+            .enter()
+            .append('rect')
+            .attr("fill", fillColour)
+            .attr("fill-opacity",maxOpacity)
+            .attr("stroke", strokeColour)
+            .attr("stroke-width", strokeWidth)
+            .attr("height",cellHeight)
+            .attr("width",cellWidth)
+            .attr("x",function(d,i){
+                return i % numCellWidth * cellWidth;
+            })
+            .attr("y",function(d,i){
+                return svgHeight - ((Math.floor(i / numCellWidth)+1) * cellHeight);
+            });
+
+        // Continuously loop and update chart with frequency data.
+        function renderGridChart() {
+    
+
+            // Copy frequency data to array.
+            analyser.getByteFrequencyData(gridFrequencyData);
+
+            requestAnimationFrame(renderGridChart);
+
+            rects
+                .data(gridFrequencyData)
+                .attr("stroke-width",function(d){return d/15})
+                .attr("fill-opacity",function(d) {
+                    return Math.min(d/100,1)*maxOpacity;
+                });
+
+        }
+
+        // Run the loop
+        renderGridChart();
 
     }
     
