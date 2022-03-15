@@ -17,8 +17,8 @@ Method, Sources, and Inspiration
 =======
 
 * Javascript / web audio API used to import and analyze the frequency of audio files
-* d3.js used for visualization (drawing shapes, binding audio frequency data to the shapes, animating)
-* HTML / CSS for markup and styling
+* d3.js used for visualization (drawing shapes, binding audio frequency data to the shapes, animation)
+* HTML / CSS for page markup and styling
 
 Sources and inspiration:
 
