@@ -1,4 +1,4 @@
-<b>Stereo Drift</b> is a music visualization tool for artists, amateurs, and everyone else.
+<b>Stereo Drift</b> is a music visualization tool for artists, amateurs, and all.
 
 Live version: <b>https://stereodrift.github.io/</b>
 
