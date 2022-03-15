@@ -88,6 +88,14 @@ var joyPlotN = 600;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
+var numCellHeight = 35;
+var numCellWidth = Math.floor(1024/numCellHeight);
+var numCells = numCellHeight * numCellWidth;
+var cellHeight = svgHeight / numCellHeight;
+var cellWidth = svgWidth / numCellWidth;
+
+var gridFrequencyData = new Uint8Array(numCells);
+
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
 var circles2FrequencyData = new Uint8Array(numCircles2);
@@ -1039,17 +1047,16 @@ function runVisualization() {
 
         analyser.smoothingTimeConstant = 0.8;
 
-        var numCellHeight = 30;
-        var numCellWidth = Math.floor(1024/numCellHeight);
-        var numCells = numCellHeight * numCellWidth;
-        var cellHeight = svgHeight / numCellHeight;
-        var cellWidth = svgWidth / numCellWidth;
-
-        var gridFrequencyData = new Uint8Array(numCells);
+        if(svgWidth < 500){
+            numCellHeight = 40;
+            numCellWidth = 20;
+            numCells = numCellHeight * numCellWidth;
+            cellHeight = svgHeight / numCellHeight;
+            cellWidth = svgWidth / numCellWidth;
+        }
 
         var maxOpacity = 1;
         var strokeWidth = 0.5;
-
 
         //draw initial cell grid
         var rects = svg.selectAll('rect')
@@ -1072,7 +1079,6 @@ function runVisualization() {
         // Continuously loop and update chart with frequency data.
         function renderGridChart() {
     
-
             // Copy frequency data to array.
             analyser.getByteFrequencyData(gridFrequencyData);
 
