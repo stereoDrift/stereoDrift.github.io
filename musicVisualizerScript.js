@@ -47,7 +47,9 @@ var uploadTrackRadio = document.getElementById("uploadTrackRadio");
 var demoTrackDiv = document.getElementById("demoTrackDiv");
 var uploadTrackDiv = document.getElementById("uploadTrackDiv");
 
-var volumeMultiplier = 1;
+var initialVolumeMultiplier = 0.80;
+var microphoneVolumeMultiplier = 0.92;
+var volumeMultiplier = initialVolumeMultiplier;
 
 var toggleMenuButton = document.getElementById("toggleMenuButton");
 var showMenu = true;
@@ -62,6 +64,8 @@ var svgHeight = svgContainerDiv.clientHeight;
 var svgWidth = svgContainerDiv.clientWidth;
 
 var infoMenuTable = document.getElementById("infoMenuTable");
+
+var isAudioPlaying = false;
 
 //var fps = 30;
 
@@ -125,6 +129,56 @@ var strokeColour;
 
 console.log("SVG height: "+svgHeight);
 console.log("Visualization choice: "+visualizationChoice);
+
+// Keep track of clicked keys
+var isKeyPressed = {
+    'c': false, // ASCII code for 'c'
+    'v': false,
+    'm': false,
+    'p': false,
+    'r': false,
+
+};
+ 
+document.onkeydown = (keyDownEvent) => {
+  
+    //Prevent default key actions, if desired
+    //keyDownEvent.preventDefault();
+        
+    // Track down key click
+    isKeyPressed[keyDownEvent.key] = true;
+        
+    // Check described custom shortcut
+    if (isKeyPressed["c"]) {
+        changeColour();
+    }
+
+    if (isKeyPressed["v"]) {
+        changeVisualization();
+    }
+
+    if (isKeyPressed["m"]) {
+        toggleMenu();
+    }
+
+    if (isKeyPressed["p"]) {
+        toggleAudioPlay();
+    }
+    
+    if (isKeyPressed["r"]) {
+        clickRewindButton();
+    }
+};
+     
+document.onkeyup = (keyUpEvent) => {
+    
+    // Prevent default key actions, if desired
+    //keyUpEvent.preventDefault();
+        
+    // Track down key release
+    isKeyPressed[keyUpEvent.key] = false;
+
+};
 
 //main method
 addEventListeners();
@@ -273,16 +327,82 @@ function refresh(){
 
 }
 
-function useMicrophone(){
+function changeColour(){
+    console.log("change colour function");
 
-    volumeMultiplier = 0.95;
+    var colourOptions = [];
+    var selectedColour;
+    var selectedPosition;
+    var nextColour;
+
+    for(var i=0; i < colourMenu.options.length; i++){
+        var current = colourMenu.options[i].value;        
+        colourOptions.push(current);
+
+        if(colourMenu.value == current){
+            selectedColour = current;
+            selectedPosition = i;
+            
+            if(selectedPosition == colourMenu.options.length-1){
+                nextColour = colourMenu.options[0].value
+            } else{
+                nextColour = colourMenu.options[selectedPosition+1].value;
+            }
+        }
+
+    }
+
+    console.log("Selected colour: "+selectedColour);
+    console.log("Next colour: "+nextColour);
+
+    colourMenu.value = nextColour;
+    refresh();
+
+}
+
+function changeVisualization(){
+    console.log("change visualization function");
+
+    var visualizationOptions = [];
+    var selectedVisualization;
+    var selectedPosition;
+    var nextVisualization;
+
+    for(var i=0; i < visualizationMenu.options.length; i++){
+        var current = visualizationMenu.options[i].value;        
+        visualizationOptions.push(current);
+
+        if(visualizationMenu.value == current){
+            selectedVisualization = current;
+            selectedPosition = i;
+            
+            if(selectedPosition == visualizationMenu.options.length-1){
+                nextVisualization = visualizationMenu.options[0].value
+            } else{
+                nextVisualization = visualizationMenu.options[selectedPosition+1].value;
+            }
+        }
+
+    }
+
+    console.log("Selected visualization: "+selectedVisualization);
+    console.log("Next visualization: "+nextVisualization);
+
+    visualizationMenu.value = nextVisualization;
+    refresh();
+
+}
+
+function useMicrophone(){
 
     //toggle flag true/false each time the button is pressed
     if(microphoneOnFlag == false){
         microphoneOnFlag = true;
+        volumeMultiplier = microphoneVolumeMultiplier;
         microphoneButton.innerHTML = "Mic <i class=\"fa-solid fa-microphone-lines-slash\"></i>";
         microphoneButton.style.border = "2px solid rgb(117, 62, 219)";
     } else {
+        volumeMultiplier = initialVolumeMultiplier;
         microphoneOnFlag = false;
         microphoneButton.innerHTML = "Mic   <i class=\"fa-solid fa-microphone-lines\"></i>";
         microphoneButton.style.border = "2px solid rgb(180, 180, 180)";
@@ -345,7 +465,9 @@ function readFile(files) {
 }
 
 function clickPlayButton(){
-    
+
+    isAudioPlaying = true;
+
     playAudioFileButton.style.border = "2px solid rgb(117, 62, 219)";
     pauseAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
     rewindAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
@@ -355,20 +477,36 @@ function clickPlayButton(){
 }
 
 function clickPauseButton(){
+    
+    isAudioPlaying = false;
+
     playAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
     pauseAudioFileButton.style.border = "2px solid rgb(117, 62, 219)";
     rewindAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
 
     audioElement.pause();
+
 }
 
 function clickRewindButton(){
+
+    isAudioPlaying = true;
+    
     playAudioFileButton.style.border = "2px solid rgb(117, 62, 219)";
     pauseAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
     rewindAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
 
     audioElement.currentTime=0;
     audioElement.play();
+
+}
+
+function toggleAudioPlay(){
+    if(isAudioPlaying == true){
+        clickPauseButton();
+    } else{
+        clickPlayButton();
+    }
 }
 
 function useAudioFile(){
@@ -376,7 +514,7 @@ function useAudioFile(){
     console.log("Use audio file");
 
     //Change volume for demo and uploaded tracks, to equalize volume with user mic
-    volumeMultiplier = 0.8;
+    volumeMultiplier = initialVolumeMultiplier;
 
     /* One-liner below is to resume playback when user interacted with the page.
     This is needed because Google does not allow audio to play until the user has interacted with the page
@@ -395,6 +533,7 @@ function useAudioFile(){
     audioSrc.connect(audioCtx.destination);
 
     audioElement.play();
+    isAudioPlaying = true;
 
     runVisualization();
 
