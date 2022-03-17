@@ -88,7 +88,7 @@ var wavesData = d3.range(1, wavesRows);
 
 var wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
 
-var joyPlotN = 600;
+var joyPlotN = 360;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
@@ -1044,7 +1044,7 @@ function runVisualization() {
     else if(visualizationChoice == "joyPlot"){
         console.log("Run joyPlot visualization");
 
-        analyser.smoothingTimeConstant = 0.9;
+        analyser.smoothingTimeConstant = 0.92;
 
         var frequencyMax = 255;
         var opacity = 1.0;
@@ -1100,7 +1100,7 @@ function runVisualization() {
         var path3 = svg.append("path")
             .datum(data3)
             .attr("fill", fillColour)
-            .attr("fill-opacity",opacity-0.6)
+            .attr("fill-opacity",opacity-0.7)
             .attr("stroke", strokeColour)
             .attr("stroke-width", strokeWidth)
             .attr("d", d3.area()
@@ -1113,7 +1113,7 @@ function runVisualization() {
         var path2 = svg.append("path")
             .datum(data2)
             .attr("fill", fillColour)
-            .attr("fill-opacity",opacity-0.3)
+            .attr("fill-opacity",opacity-0.6)
             .attr("stroke", strokeColour)
             .attr("stroke-width", strokeWidth)
             .attr("d", d3.area()
