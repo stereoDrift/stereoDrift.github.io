@@ -122,6 +122,7 @@ var palette6 = ["#f1faee", "#e63946", "#a8dadc"];
 var palette7 = ["#e0c3fc", "#4d194d", "#b5179e"];
 var palette8 = ["#652EC7", "#FFD300", "#DE38C8"];
 var palette9 = ["#B2FAFF", "#FF9472", "#FC6E22"];
+var palette10 = ["#C6FFF1", "#FF36AB", "#6153CC"];
 
 var backgroundColour;
 var fillColour;
@@ -646,6 +647,10 @@ function runVisualization() {
         backgroundColour = palette9[0];
         fillColour = palette9[1];
         strokeColour = palette9[2];
+    } else if(colourChoice == "Berry"){
+        backgroundColour = palette10[0];
+        fillColour = palette10[1];
+        strokeColour = palette10[2];
     }
 
     //convert fill colour HEX into RGB instead
