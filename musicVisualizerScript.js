@@ -396,6 +396,8 @@ function changeVisualization(){
 
 function useMicrophone(){
 
+    refresh();
+
     //toggle flag true/false each time the button is pressed
     if(microphoneOnFlag == false){
         microphoneOnFlag = true;
@@ -466,7 +468,7 @@ function readFile(files) {
 }
 
 function clickPlayButton(){
-
+    
     isAudioPlaying = true;
 
     playAudioFileButton.style.border = "2px solid rgb(117, 62, 219)";
@@ -514,6 +516,8 @@ function useAudioFile(){
     
     console.log("Use audio file");
 
+    refresh();
+
     //Change volume for demo and uploaded tracks, to equalize volume with user mic
     volumeMultiplier = initialVolumeMultiplier;
 
@@ -545,28 +549,6 @@ function changeDemoTrack(){
     //clickPauseButton();
     clickPlayButton();
 }
-
-
-/*
-function playAudioFile(file) {
-    
-    audioCtx.decodeAudioData(file, function(buffer) {
-        audioSrc = audioCtx.createBufferSource();
-        audioSrc.buffer = buffer;
-        audioSrc.loop = false;
-        audioSrc.connect(audioCtx.destination);
-        audioSrc.start(0);
-        audioSrc.connect(analyser);
-    });
-
-    //audioSrc = audioCtx.createMediaElementSource(file);
-
-    // Bind our analyser to the media element source.
-    //audioSrc.connect(audioCtx.destination);
-
-    runVisualization();
-}
-*/
 
 
 function runVisualization() {
@@ -1346,6 +1328,102 @@ function runVisualization() {
 
         // Run the loop
         renderRingsChart();
+
+    }
+
+
+    else if(visualizationChoice == "spiral"){
+        console.log("Run spiral visualization");
+
+        var numSpiralCircles = 2000;
+        var activeCircleSpacing = 12;
+        var numActiveCircles = Math.floor(numSpiralCircles / activeCircleSpacing);
+        var spiralAngle = 5.0;
+        var spiralScalar = 10.0;
+        var spiralSpeed = 0.4;
+        var spiralXOffset = svgWidth / 2;
+        var spiralYOffset = svgHeight / 2;
+        var minRadius = 4;
+        var maxRadius = 50;
+        var opacity = 0.9;
+        var strokeWidth = 1;
+
+        var circleData = new Uint8Array(numSpiralCircles);
+        var activeCircleFrequencyData = new Uint8Array(numActiveCircles);
+
+        //set max range of colours, based on discussion from screen center
+        var hueRange = 125;
+        var hueStart = fillHue - hueRange/2;
+        var hueEnd = fillHue + hueRange/2;
+
+        var hueScale = d3.scaleLinear()
+            .domain([0, svgHeight])
+            .range([hueStart, hueEnd]);
+
+        analyser.smoothingTimeConstant = 0.88;
+
+        if(svgWidth < 500){
+
+        }
+
+        var circles = svg.selectAll('circles')
+            .data(circleData)    
+            .enter()    
+            .append('circle')
+            .attr("class", function(d,i) {
+                if(i % activeCircleSpacing == 0){
+                    return "activeCircles";
+                }
+            })
+            .attr("fill-opacity",opacity)
+            .attr("fill", function(d, i){
+                if(colourChoice == "Noir"){
+                    return "white";
+                } else {
+                    var yPosition = spiralYOffset + Math.sin(spiralAngle + spiralSpeed*i) * (spiralScalar + spiralSpeed*i);
+                    var yOffset = Math.abs(yPosition - svgHeight/2);
+
+                    var xPosition = spiralXOffset + Math.cos(spiralAngle + spiralSpeed*i) * (spiralScalar + spiralSpeed*i);
+                    var xOffset = Math.abs(xPosition - svgWidth/2);
+
+                    return d3.hsl(hueScale(yOffset + xOffset), 1, 0.5);
+                }
+            })
+            .attr("r", minRadius)
+            .attr("stroke", strokeColour)
+            .attr("stroke-width", strokeWidth)
+            .attr("cx",function(d,i){
+                return spiralXOffset + Math.cos(spiralAngle + spiralSpeed*i) * (spiralScalar + spiralSpeed*i);
+            })
+            .attr("cy",function(d,i){
+                return spiralYOffset + Math.sin(spiralAngle + spiralSpeed*i) * (spiralScalar + spiralSpeed*i);
+            });
+
+        var activeCircles = d3.selectAll(".activeCircles");
+
+
+        // Continuously loop and update chart with frequency data.
+        function renderSpiralChart() {
+    
+            // Copy frequency data to array.
+            analyser.getByteFrequencyData(activeCircleFrequencyData);
+
+            requestAnimationFrame(renderSpiralChart);
+
+            // update d3 chart with new data
+            activeCircles
+                .data(activeCircleFrequencyData)
+                .attr("r", function(d, i) {
+
+                    return Math.min(maxRadius, Math.max(minRadius, Math.pow(d,2.0) / 1000 ));
+                        
+                });  
+
+                    
+        }
+
+        // Run the loop
+        renderSpiralChart();
 
     }
     
