@@ -3,12 +3,12 @@
 - Allow users to "create" their own music video -- add text, choose colours, upload music, export the file, etc...
 - Add gradient / "textured" backgrounds?
 - Feature to import audio from Spotify or YouTube URL?
-- Mobile formatting (menu, shape sizes, etc.)
 - Auto-play next demo track after one track finishes?
 - Reduce animation frame rate to improve performance / reduce compute?
 - Less sensitivity to bass&percussion / more sensitivity to individual notes?
 - Add "advanced options" menu with toggles for sensitivity, etc...?
-- Add keyboard shortcuts (play/pause/restart song, change visual, change colour, hide/show menu)
+- Grid visual: doesn't re-draw after show/hide menu toggle
+- Spiral visual: active circles duplicated behind regular circles on first play (fixed after colour change?)
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
@@ -565,7 +565,7 @@ function runVisualization() {
         circles3Rows = numCircles3 / circles3Cols;
         circles3BottomMargin = 50;
     
-        numDancingCircles = 100;
+        numDancingCircles = 75;
         dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
     
         wavesRows = 8;
@@ -590,7 +590,7 @@ function runVisualization() {
         shapeSizeMultiplier = 0.45;
     }
 
-    var maxCircleSize = Math.min(svgWidth * 0.10, svgHeight*0.10);
+    var maxCircleSize = Math.min(svgWidth * 0.09, svgHeight*0.09);
 
     //select colours based on user input
     if(colourChoice == "Zissou"){
@@ -1340,16 +1340,15 @@ function runVisualization() {
         var numActiveCircles = Math.floor(numSpiralCircles / activeCircleSpacing);
         var spiralAngle = 5.0;
         var spiralScalar = 10.0;
-        var spiralSpeed = 0.4;
+        var spiralSpeed = 0.2;
         var spiralXOffset = svgWidth / 2;
         var spiralYOffset = svgHeight / 2;
-        var minRadius = 4;
+        var minRadius = 3;
         var maxRadius = 50;
         var opacity = 0.9;
         var strokeWidth = 1;
-
-        var circleData = new Uint8Array(numSpiralCircles);
-        var activeCircleFrequencyData = new Uint8Array(numActiveCircles);
+        var exponent = 2.1;
+        var divisor = 1500;
 
         //set max range of colours, based on discussion from screen center
         var hueRange = 125;
@@ -1363,8 +1362,17 @@ function runVisualization() {
         analyser.smoothingTimeConstant = 0.88;
 
         if(svgWidth < 500){
-
+            numSpiralCircles = 1200;
+            activeCircleSpacing = 12;
+            numActiveCircles = Math.floor(numSpiralCircles / activeCircleSpacing);
+            minRadius = 2;
+            maxRadius = 30;
+            exponent = 2.1;
+            divisor = 3000;
         }
+
+        var circleData = new Uint8Array(numSpiralCircles);
+        var activeCircleFrequencyData = new Uint8Array(numActiveCircles);
 
         var circles = svg.selectAll('circles')
             .data(circleData)    
@@ -1415,7 +1423,7 @@ function runVisualization() {
                 .data(activeCircleFrequencyData)
                 .attr("r", function(d, i) {
 
-                    return Math.min(maxRadius, Math.max(minRadius, Math.pow(d,2.0) / 1000 ));
+                    return Math.min(maxRadius, Math.max(minRadius, Math.pow(d, exponent) / divisor ));
                         
                 });  
 
