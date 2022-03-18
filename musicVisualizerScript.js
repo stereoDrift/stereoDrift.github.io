@@ -20,6 +20,24 @@ var colourChoice = String(colourMenu.value);
 var svgContainerDiv = document.getElementById("svgContainerDiv");
 var mainSvg = document.getElementById("mainSvg");
 
+var grainOpacityValue = 0.05;
+
+var grainOptions = {
+    animate: false,
+    patternWidth: 400,
+    patternHeight: 400,
+    grainOpacity: grainOpacityValue,
+    grainDensity: 1.5,
+    grainWidth: 2.5,
+    grainHeight: 2.0,
+};
+
+grained('#svgContainerDiv',grainOptions);
+
+var isGrainOn = true;
+var grainArray = document.getElementsByClassName("grained");
+
+
 var svg = d3.select("#mainSvg");
 
 var userInputArray = document.getElementsByClassName("userInput");
@@ -123,6 +141,7 @@ var palette7 = ["#e0c3fc", "#4d194d", "#b5179e"];
 var palette8 = ["#652EC7", "#FFD300", "#DE38C8"];
 var palette9 = ["#B2FAFF", "#FF9472", "#FC6E22"];
 var palette10 = ["#C6FFF1", "#FF36AB", "#6153CC"];
+var palette11 = ["#f6d166", "#287e87", "#df2d2d"];
 
 var backgroundColour;
 var fillColour;
@@ -138,6 +157,7 @@ var isKeyPressed = {
     'm': false,
     'p': false,
     'r': false,
+    'g': false,
 
 };
  
@@ -168,6 +188,10 @@ document.onkeydown = (keyDownEvent) => {
     
     if (isKeyPressed["r"]) {
         clickRewindButton();
+    }
+
+    if (isKeyPressed["g"]) {
+        toggleGrain();
     }
 };
      
@@ -258,6 +282,39 @@ function toggleMenu(){
         }, 50);
 
     }
+}
+
+function toggleGrain(){
+    
+    console.log("toggle grain function");
+    console.log(grainArray);
+
+    if(isGrainOn == true){
+        grainOptions = {
+            grainOpacity: 0.00,
+        };
+
+        isGrainOn = false;
+
+    } else{
+        grainOptions = {
+            animate: false,
+            patternWidth: 400,
+            patternHeight: 400,
+            grainOpacity: grainOpacityValue,
+            grainDensity: 1.5,
+            grainWidth: 2.5,
+            grainHeight: 2.0,
+        };
+
+        isGrainOn = true;
+
+    }
+
+    grained('#svgContainerDiv',grainOptions);
+
+    refresh();
+
 }
 
 function showDemoTrackMenu(){
@@ -500,7 +557,9 @@ function clickRewindButton(){
     rewindAudioFileButton.style.border = "2px solid rgb(180, 180, 180)";
 
     audioElement.currentTime=0;
-    audioElement.play();
+    
+    clickPlayButton();
+    //audioElement.play();
 
 }
 
@@ -633,6 +692,10 @@ function runVisualization() {
         backgroundColour = palette10[0];
         fillColour = palette10[1];
         strokeColour = palette10[2];
+    } else if(colourChoice == "Retro"){
+        backgroundColour = palette11[0];
+        fillColour = palette11[1];
+        strokeColour = palette11[2];
     }
 
     //convert fill colour HEX into RGB instead
@@ -1044,7 +1107,7 @@ function runVisualization() {
         var data3 = new Uint8Array(joyPlotCols);
 
         // X scale will fit all values from data[] within pixels 0-w
-        var x = d3.scaleLinear().domain([0, joyPlotCols]).range([0, svgWidth+10]);
+        var x = d3.scaleLinear().domain([0, joyPlotCols]).range([0, svgWidth+0]);
         // Y scale will fit values from 0-10 within pixels h-0 (Note the inverted domain for the y-scale: bigger is up!)
         var y = d3.scaleLinear().domain([0, frequencyMax*chartHeightMultiplier]).range([svgHeight, 0]);
             // automatically determining max range can work something like this
@@ -1194,7 +1257,9 @@ function runVisualization() {
         console.log("numCellHeight: "+numCellHeight+", cellHeight: "+cellHeight+", "+" svgHeight: "+svgHeight);
 
         var maxOpacity = 0.7;
-        var minStrokeWidth = 0.1;
+        var minStrokeWidth = 0.0;
+
+        var exponent = 7;
 
         var gridFrequencyData = new Uint8Array(numCells);
 
@@ -1244,7 +1309,7 @@ function runVisualization() {
                 })
                 .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/30+minStrokeWidth)})
                 .attr("fill-opacity",function(d) {
-                    return Math.min(d/100,1)*maxOpacity;
+                    return Math.min(Math.pow(d,exponent)/(Math.pow(255,exponent-1)/4),1)*maxOpacity;
                 });
 
         }
@@ -1262,7 +1327,7 @@ function runVisualization() {
         var hueStart = fillHue - hueRange/2;
         var hueEnd = fillHue + hueRange/2;
 
-        analyser.smoothingTimeConstant = 0.85;
+        analyser.smoothingTimeConstant = 0.9;
 
         if(svgWidth < 500){
 
@@ -1348,7 +1413,7 @@ function runVisualization() {
         var opacity = 0.9;
         var strokeWidth = 1;
         var exponent = 2.1;
-        var divisor = 1500;
+        var divisor = 3500;
 
         //set max range of colours, based on discussion from screen center
         var hueRange = 125;
@@ -1368,7 +1433,7 @@ function runVisualization() {
             minRadius = 2;
             maxRadius = 30;
             exponent = 2.1;
-            divisor = 3000;
+            divisor = 7000;
         }
 
         var circleData = new Uint8Array(numSpiralCircles);
