@@ -113,7 +113,7 @@ var joyPlotCols = joyPlotN / joyPlotRows;
 var numCellWidth = 25;
 var numCellHeight = 20;
 var numCells = numCellHeight * numCellWidth;
-var maxCellStrokeWidth = 7;
+var maxCellStrokeWidth = 4;
 
 var numRings = 10;
 
@@ -1242,13 +1242,13 @@ function runVisualization() {
     else if(visualizationChoice == "grid"){
         console.log("Run grid visualization");
 
-        analyser.smoothingTimeConstant = 0.94;
+        analyser.smoothingTimeConstant = 0.92;
 
         if(svgWidth < 500){
             numCellWidth = 10;
             numCellHeight = 20;
             numCells = numCellHeight * numCellWidth;
-            maxCellStrokeWidth = 3;
+            maxCellStrokeWidth = 2;
         }
 
         var cellWidth = svgWidth / numCellWidth;
@@ -1259,7 +1259,8 @@ function runVisualization() {
         var maxOpacity = 0.7;
         var minStrokeWidth = 0.0;
 
-        var exponent = 7;
+        var exponent = 10;
+        var divisor = 8;
 
         var gridFrequencyData = new Uint8Array(numCells);
 
@@ -1307,9 +1308,9 @@ function runVisualization() {
                         return d3.hsl(hueScale(d), 1, 0.5);
                     }
                 })
-                .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/30+minStrokeWidth)})
+                .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/70+minStrokeWidth)})
                 .attr("fill-opacity",function(d) {
-                    return Math.min(Math.pow(d,exponent)/(Math.pow(255,exponent-1)/4),1)*maxOpacity;
+                    return Math.min(Math.pow(d,exponent)/(Math.pow(255,exponent-1)/ divisor),1)*maxOpacity;
                 });
 
         }
