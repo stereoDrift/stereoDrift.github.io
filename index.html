@@ -56,7 +56,7 @@
     
                         <td>
                             <label for="visualizationMenu">Visualization:</label>
-                            <select name="visualizationMenu" id="visualizationMenu" class="userInput selectMenu">
+                            <select name="visualizationMenu" id="visualizationMenu" class="userInput selectMenu" onkeydown="IgnoreAlpha(event);">
                                 <option value="dancingCircles" selected>Dancing Circles</option>
                                 <option value="joyPlot">Joy Plot</option>
                                 <option value="waves">Waves</option>
@@ -67,6 +67,7 @@
                                 <option value="grid">Grid</option>
                                 <option value="rings">Rings</option>
                                 <option value="spiral">Spiral</option>
+                                <option value="hills">Hills</option>
                             </select>
                         </td>
     
@@ -99,7 +100,7 @@
     
                         <td>
                             <label for="colourMenu">Color Palette:</label>
-                            <select name="colourMenu" id="colourMenu" class="userInput selectMenu">
+                            <select name="colourMenu" id="colourMenu" class="userInput selectMenu" onkeydown="IgnoreAlpha(event);">
                                 <option value="Zissou">Zissou</option>
                                 <option value="Vapor">Vapor</option>
                                 <option value="Noir">Noir</option>
