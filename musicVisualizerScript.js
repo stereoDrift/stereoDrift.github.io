@@ -1639,8 +1639,8 @@ function runVisualization() {
 
             var minStrokeWidth = 2;
             var minOpacity = 0.1;
-            var opacityExponent = 6;
-            var opacityDivisor = 20;
+            var opacityExponent = 5;
+            var opacityDivisor = 4000;
 
             var hexagonsData = [[0, 0]], x, y, j;
 
@@ -1653,7 +1653,7 @@ function runVisualization() {
                 dy = r * 1.5;
             }
     
-            analyser.smoothingTimeConstant = 0.8;
+            analyser.smoothingTimeConstant = 0.94;
 
             //hexagon data
             for (var i = 1; i <= Math.floor(n/2); i++) {
@@ -1722,7 +1722,7 @@ function runVisualization() {
                 hexes
                     .data(hexagonsFrequencyData)
                     .attr("fill-opacity", function(d){
-                        return Math.max(minOpacity, Math.pow(d, opacityExponent) / Math.pow(255, opacityExponent-1) / opacityDivisor);
+                        return Math.max(minOpacity, Math.pow(d, opacityExponent) / Math.pow(70, opacityExponent-1) / opacityDivisor);
                     })
                     .attr("stroke-width", function(d){
                         return Math.max(minStrokeWidth, d/50);
