@@ -1515,7 +1515,7 @@ function runVisualization() {
             var slope = 0.4;
     
             var frequencyMax = 255;
-            var chartHeightMultiplier = 1.1;
+            var chartHeightMultiplier = 1.35;
             var opacity = 1;
             var strokeWidth = 5;
     
