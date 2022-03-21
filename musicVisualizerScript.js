@@ -1572,22 +1572,6 @@ function runVisualization() {
                     .y1(function(d) { return y(20) })
                     .curve(d3.curveBasis)
                 );
-            
-            /*
-            //Add the vertical lines
-            for(var i=0; i< numVerticalLines; i++){
-                svg.append("line")
-                    .data(hillFrequencyData[i])
-                    .enter()
-                    .attr("class","verticalLines")    
-                    .attr("stroke", fillColour)
-                    .attr("stroke-width", strokeWidth)
-                    .attr("x1", svgWidth / numVerticalLines * (i+1))
-                    .attr("y1", svgHeight)
-                    .attr("x2", svgWidth / numVerticalLines * (i+1))
-                    .attr("y2", 0);
-            }
-            */
     
             // draw vertical lines
     
@@ -1643,11 +1627,129 @@ function runVisualization() {
     
         }
 
+        else if(visualizationChoice == "hexagons"){
+            console.log("Run hexagons visualization");
+
+            var width = svgWidth/2,
+                height = svgHeight/2,
+                n = 15,
+                r = width / n / 2 + svgWidth * 0.015,
+                dx = r * 2 * Math.sin(Math.PI / 3),
+                dy = r * 1.5;
+
+            var minStrokeWidth = 2;
+            var minOpacity = 0.1;
+            var opacityExponent = 6;
+            var opacityDivisor = 20;
+
+            var hexagonsData = [[0, 0]], x, y, j;
+
+            var numHexagons;
+    
+            if(svgWidth < 500){
+                n = 9,
+                r = width / n / 2 + svgWidth * 0.015,
+                dx = r * 2 * Math.sin(Math.PI / 3),
+                dy = r * 1.5;
+            }
+    
+            analyser.smoothingTimeConstant = 0.8;
+
+            //hexagon data
+            for (var i = 1; i <= Math.floor(n/2); i++) {
+                var odd = i % 2 === 1;
+            
+                for (j = 0, x = (2 - i) * dx / 2, y = -i * dy; j < i; j++, x += dx, y += 0) {
+                    hexagonsData.push([x, y]);
+                }
+            
+                for (j = 0, x = (1 + i) * dx / 2, y = (1 - i) * dy; j < i; j++, x += dx / 2, y += dy) {
+                    hexagonsData.push([x, y]);
+                }
+            
+                for (j = 0, x = (2 * i - 1) * dx / 2, y = dy; j < i; j++, x -= dx / 2, y += dy) {
+                    hexagonsData.push([x, y]);
+                }
+            
+                for (j = 0, x = i * dx / 2 - dx, y = i * dy; j < i; j++, x -= dx, y += 0) {
+                    hexagonsData.push([x, y]);
+                }
+            
+                for (j = 0, x = (-i - 1) * dx / 2, y = (i - 1) * dy; j < i; j++, x -= dx / 2, y -= dy) {
+                    hexagonsData.push([x, y]);
+                }
+            
+                for (j = 0, x = -i * dx + dx / 2, y = -dy; j < i; j++, x += dx / 2, y -= dy) {
+                    hexagonsData.push([x, y]);
+                }
+            }
+
+            numHexagons = hexagonsData.length;
+            
+            var hexagonsFrequencyData = new Uint8Array(numHexagons);
+
+            console.log("hexagons data length: "+hexagonsData.length);
+
+            var hexes = svg.selectAll("g")
+                .data(hexagonsData)
+                .enter().append("g")
+                .attr("class",function(d,i){
+                    if(i == 0){
+                        return "firstHexagon";
+                    } else{
+                        return "otherHexagon";
+                    }
+                })
+                .attr("transform", function(d) {
+                    return "translate(" + [d[0] + width, d[1] + height] + ")";
+                })
+                .append("path")
+                .attr("fill", fillColour)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", minStrokeWidth)
+                .attr("fill-opacity", minOpacity)
+                .attr("d", "M" + hexagon(r).join("L") + "Z");
+    
+            // Continuously loop and update chart with frequency data.
+            function renderHexagonsChart() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(hexagonsFrequencyData);
+
+                var t = performance.now();
+
+                requestAnimationFrame(renderHexagonsChart);
+                
+                hexes
+                    .data(hexagonsFrequencyData)
+                    .attr("fill-opacity", function(d){
+                        return Math.max(minOpacity, Math.pow(d, opacityExponent) / Math.pow(255, opacityExponent-1) / opacityDivisor);
+                    })
+                    .attr("stroke-width", function(d){
+                        return Math.max(minStrokeWidth, d/50);
+                    })
+                    .attr("transform", function(d, i) {
+                        return "scale(" + (Math.sin(t * (i + 1) / 200000) + 1 ) / 2 + ")";
+                    });
+            }
+    
+            // Run the loop
+            renderHexagonsChart();
+    
+        }
+
     } else{
         console.log("Audio not playing");
 
     }
 
+}
+
+function hexagon(radius) {
+    return d3.range(0, 2 * Math.PI, Math.PI / 3).map(function(angle) {
+        var x1 = Math.sin(angle) * radius,
+            y1 = -Math.cos(angle) * radius;
+        return [x1, y1];
+    });
 }
 
 function findYatX(x, linePath) {
