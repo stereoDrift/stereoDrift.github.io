@@ -1633,7 +1633,7 @@ function runVisualization() {
             var width = svgWidth/2,
                 height = svgHeight/2,
                 n = 15,
-                r = width / n / 2 + svgWidth * 0.015,
+                r = width / n / 2 + Math.min(svgWidth, svgHeight) * 0.014,
                 dx = r * 2 * Math.sin(Math.PI / 3),
                 dy = r * 1.5;
 
