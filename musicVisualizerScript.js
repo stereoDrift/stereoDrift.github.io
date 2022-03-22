@@ -1746,8 +1746,8 @@ function runVisualization() {
             var dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
 
             if(svgWidth < 500){
-                minDiameter = 30;
-                maxDiameter = 60;
+                minDiameter = 40;
+                maxDiameter = 80;
                 targetNumDotWidth = 15;
                 dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
             }
