@@ -1753,7 +1753,7 @@ function runVisualization() {
             console.log("diameter: "+dotDiameter+", numDotsWidth: "+numDotsWidth+", numDotsHeight: "+numDotsHeight);
 
             var minStrokeWidth = 1;
-            var minOpacity = 0.6;
+            var minOpacity = 0.3;
             
             //draw initial grid of dots
             var dots = svg.selectAll("circle")
@@ -1781,7 +1781,7 @@ function runVisualization() {
                 dots   
                     .data(dotsFrequencyData)    
                     .attr("r", function(d,i){
-                        return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/3));
+                        return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/4.0 ));
                     });
     
             }
