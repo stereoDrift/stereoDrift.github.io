@@ -268,7 +268,8 @@ function setSvgSize(){
         
         console.log("Window innerHeight: "+window.innerHeight);
         console.log("navMenuHeight: "+navMenuHeight);
-        console.log("svgContainerDivHeight: "+svgContainerDiv.style.height);
+        console.log("svgContainerDivHeight: "+svgContainerDiv.clientHeight);
+        console.log("svgContainerDivWidth: "+svgContainerDiv.clientWidth);
 
         svgHeight = svgContainerDiv.clientHeight;
         svgWidth = svgContainerDiv.clientWidth;
@@ -1740,9 +1741,20 @@ function runVisualization() {
         } else if(visualizationChoice == "dots"){
             
             var minDiameter = 50;
-            var maxDiameter = 120;
-            var targetNumDotWidth = 40;
+            var maxDiameter = 100;
+            var targetNumDotWidth = 30;
             var dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
+
+            if(svgWidth < 500){
+                minDiameter = 30;
+                maxDiameter = 60;
+                targetNumDotWidth = 15;
+                dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
+            }
+
+            //reset min diameter to the actual dot diameter, so that dots never shrink in the animation
+            minDiameter = dotDiameter;
+            maxDiameter = 2*minDiameter;
 
             var numDotsWidth = Math.ceil(svgWidth / dotDiameter);
             var numDotsHeight = Math.ceil(svgHeight / dotDiameter);
@@ -1779,9 +1791,12 @@ function runVisualization() {
                 requestAnimationFrame(renderDotsChart);
 
                 dots   
-                    .data(dotsFrequencyData)    
+                    .data(dotsFrequencyData)
                     .attr("r", function(d,i){
-                        return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/4.0 ));
+                        //return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/4.5 ));
+
+                        return Math.min(maxDiameter/2, (minDiameter/2 * (1+ Math.pow(d,3)/ Math.pow(200,3) )) );
+                        
                     });
     
             }
