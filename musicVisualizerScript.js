@@ -1523,6 +1523,7 @@ function runVisualization() {
     
             if(svgWidth < 500){
                 strokeWidth = 2;
+                chartHeightMultiplier = 1.5;
             }
     
             var horizontalLineData = new Uint8Array(numHorizontalLines);
@@ -1647,10 +1648,11 @@ function runVisualization() {
             var numHexagons;
     
             if(svgWidth < 500){
-                n = 9,
-                r = width / n / 2 + svgWidth * 0.015,
+                n = 11,
+                r = width / n / 2 + Math.min(svgWidth, svgHeight) * 0.012,
                 dx = r * 2 * Math.sin(Math.PI / 3),
                 dy = r * 1.5;
+                minStrokeWidth = 1;
             }
     
             analyser.smoothingTimeConstant = 0.94;
@@ -1735,6 +1737,58 @@ function runVisualization() {
             // Run the loop
             renderHexagonsChart();
     
+        } else if(visualizationChoice == "dots"){
+            
+            var minDiameter = 50;
+            var maxDiameter = 120;
+            var targetNumDotWidth = 40;
+            var dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
+
+            var numDotsWidth = Math.ceil(svgWidth / dotDiameter);
+            var numDotsHeight = Math.ceil(svgHeight / dotDiameter);
+
+            var numDots = numDotsWidth * numDotsHeight;
+            var dotsFrequencyData = new Uint8Array(numDots);
+
+            console.log("diameter: "+dotDiameter+", numDotsWidth: "+numDotsWidth+", numDotsHeight: "+numDotsHeight);
+
+            var minStrokeWidth = 1;
+            var minOpacity = 0.6;
+            
+            //draw initial grid of dots
+            var dots = svg.selectAll("circle")
+                .data(dotsFrequencyData)
+                .enter().append("circle")
+                .attr("fill", fillColour)
+                .attr("fill-opacity", minOpacity)
+                .attr("r", dotDiameter/2)
+                .attr("cx",function(d,i){
+                    return dotDiameter * (i % numDotsWidth) + dotDiameter/2;
+                })
+                .attr("cy",function(d,i){
+                    return svgHeight - (dotDiameter * (Math.floor(i / numDotsWidth)) + dotDiameter/2);
+                });
+
+            analyser.smoothingTimeConstant = 0.94;
+
+            // Continuously loop and update chart with frequency data.
+            function renderDotsChart() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(dotsFrequencyData);
+
+                requestAnimationFrame(renderDotsChart);
+
+                dots   
+                    .data(dotsFrequencyData)    
+                    .attr("r", function(d,i){
+                        return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/3));
+                    });
+    
+            }
+    
+            // Run the loop
+            renderDotsChart();
+
         }
 
     } else{
