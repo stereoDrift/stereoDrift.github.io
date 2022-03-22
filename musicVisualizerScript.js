@@ -1804,6 +1804,130 @@ function runVisualization() {
             // Run the loop
             renderDotsChart();
 
+        } else if(visualizationChoice == "grid2") {
+            
+            var numRows = 10;
+            var numCols = 10;
+
+            var numHorizontalSegments = numCols * (numRows+1);
+            var numVerticalSegments = numRows * (numCols+1);
+            var numTotalSegments = numHorizontalSegments + numVerticalSegments;
+
+            var horizontalLength = svgWidth / numCols;
+            var verticalLength = svgHeight / numRows;
+
+            if(svgWidth < 500){
+                numRows = 7;
+                numCols = 7;
+    
+                numHorizontalSegments = numCols * (numRows+1);
+                numVerticalSegments = numRows * (numCols+1);
+                numTotalSegments = numHorizontalSegments + numVerticalSegments;
+    
+                horizontalLength = svgWidth / numCols;
+                verticalLength = svgHeight / numRows;
+            }
+
+            var grid2FrequencyData = new Uint8Array(numTotalSegments);
+
+            var strokeWidth = 1;
+
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 80;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+    
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
+
+            var horizontalLines = svg.selectAll('.horizontalLines')
+                .data(new Array(numHorizontalSegments))
+                .enter()
+                .append('line')
+                .attr("class","horizontalLines")
+                .attr("stroke", function(d,i){
+                    var huePosition = Math.random() * hueRange;
+                    var saturationValue = Math.random() * 0.3 + 0.5;
+                    var lightnessValue = Math.random() * 0.3 + 0.5;
+
+                    return d3.hsl(hueScale(huePosition), saturationValue, lightnessValue);
+                })
+                .attr("stroke-width", strokeWidth)
+                .attr("x1", function(d,i){
+                    return i % numCols * horizontalLength;
+                })
+                .attr("y1", function (d,i) {
+                    return svgHeight - (Math.floor(i / numCols) * verticalLength);
+                })
+                .attr("x2", function(d,i){
+                    return (i % numCols * horizontalLength) + horizontalLength;
+                })
+                .attr("y2", function (d,i) {
+                    return svgHeight - (Math.floor(i / numCols) * verticalLength);
+                });
+            
+
+            var verticalLines = svg.selectAll('.verticalLines')
+                .data(new Array(numHorizontalSegments))
+                .enter()
+                .append('line')
+                .attr("class","verticalLines")
+                .attr("stroke", function(d,i){
+                    var huePosition = Math.random() * hueRange;
+                    var saturationValue = Math.random() * 0.3 + 0.5;
+                    var lightnessValue = Math.random() * 0.3 + 0.5;
+
+                    return d3.hsl(hueScale(huePosition), saturationValue, lightnessValue);
+                })
+                .attr("stroke-width", minStrokeWidth)
+                .attr("x1", function(d,i){
+                    return i % numCols * horizontalLength;
+                })
+                .attr("y1", function (d,i) {
+                    return svgHeight - (Math.floor(i / numCols) * verticalLength);
+                })
+                .attr("x2", function(d,i){
+                    return i % numCols * horizontalLength;
+                })
+                .attr("y2", function (d,i) {
+                    return svgHeight - (Math.floor(i / numCols) * verticalLength + verticalLength);
+                });
+
+
+
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 125;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+    
+            var hueScale = d3.scaleLinear()
+                .domain([0, svgHeight])
+                .range([hueStart, hueEnd]);
+    
+            analyser.smoothingTimeConstant = 0.88;
+
+            
+            // Continuously loop and update chart with frequency data.
+            function renderGrid2Chart() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(grid2FrequencyData);
+
+                requestAnimationFrame(renderGrid2Chart);
+
+                svg.selectAll("line")   
+                    .data(grid2FrequencyData)
+                    .attr("stroke-width", function(d,i){
+
+                        return Math.max(0, d/6 - 18);
+                        
+                    });
+
+            }
+
+            // Run the loop
+            renderGrid2Chart();
+            
         }
 
     } else{
