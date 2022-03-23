@@ -1446,7 +1446,7 @@ function runVisualization() {
                 rings
                     .data(ringsFrequencyData)
                     .attr("stroke-opacity", function(d,i){
-                        return d/255 * maxOpacity;
+                        return Math.max(0, (d-110)/255 * maxOpacity);
                     })
                     .attr("stroke-width", function(d,i){
                         
