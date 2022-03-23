@@ -1346,7 +1346,7 @@ function runVisualization() {
             console.log("Run rings visualization");
     
             var numLines = 15;
-            var numRings = 50;
+            var numRings = 40;
             var numShapes = numLines + numRings;
 
             var ringsFrequencyData = new Uint8Array(numRings);
@@ -1354,15 +1354,21 @@ function runVisualization() {
             var maxRadius = Math.min(svgWidth, svgHeight)*0.9 / 2;
             var minRadius = 1;
 
-            var minStrokeWidth = 0.1;
+            var minStrokeWidth = 0.0;
             var maxStrokeWidth = 30;
 
             var maxStrokeBoost = 0;
 
+            var maxOpacity = 0.9;
+
             //set max range of colours, based on frequency input 
-            var hueRange = 250;
+            var hueRange = 0;
             var hueStart = fillHue - hueRange/2;
             var hueEnd = fillHue + hueRange/2;
+
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
     
     
             if(svgWidth < 500){
@@ -1395,9 +1401,23 @@ function runVisualization() {
                 .attr("cy", svgHeight / 2)
                 .attr("fill", backgroundColour)
                 .attr("stroke-width", minStrokeWidth)
-                .attr("stroke", fillColour);
-                
-            analyser.smoothingTimeConstant = 0.8;
+                .attr("stroke-opacity", maxOpacity)
+                .attr("stroke", function(d) {
+                    /*
+                    if(colourChoice == "Noir"){
+                        return "white";
+                    } else {
+                        var hueValue = hueScale(Math.random()*hueRange);
+                        var saturationValue = Math.random()*0.3 + 0.5;
+                        var lightnessValue = Math.random()*0.3 + 0.5;
+
+                        return d3.hsl(hueValue, saturationValue, lightnessValue);
+                    }
+                    */
+                   return fillColour;
+                });
+
+            analyser.smoothingTimeConstant = 0.85;
             
             // Continuously loop and update chart with frequency data.
             function renderRingsChart() {
@@ -1425,11 +1445,14 @@ function runVisualization() {
 
                 rings
                     .data(ringsFrequencyData)
+                    .attr("stroke-opacity", function(d,i){
+                        return d/255 * maxOpacity;
+                    })
                     .attr("stroke-width", function(d,i){
                         
                         var strokeBoost = ((i+1) / numRings) * maxStrokeBoost;
                         
-                        return Math.min(maxStrokeWidth, Math.max(minStrokeWidth, (d/35 + strokeBoost) ));
+                        return Math.min(maxStrokeWidth, Math.max(minStrokeWidth, (d/20 + strokeBoost) ));
                     });
         
             }
