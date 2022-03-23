@@ -91,7 +91,7 @@ var isAudioPlaying = false;
 var barPadding = 1;
 var numBars = 400;
 var numCircles = 25;
-var numCircles2 = 100;
+var numCircles2 = 75;
 var numCircles3 = 400;
 var circles3Cols = 40;
 var circles3Rows = numCircles3 / circles3Cols;
@@ -636,7 +636,7 @@ function runVisualization() {
         barPadding = 0;
         numBars = 200;
         numCircles = 15;
-        numCircles2 = 50;
+        numCircles2 = 45;
         numCircles3 = 175;
         circles3Cols = 25;
         circles3Rows = numCircles3 / circles3Cols;
@@ -865,7 +865,7 @@ function runVisualization() {
                 svg.selectAll('circle')
                     .data(circles2FrequencyData)
                     .attr('r', function(d) {
-                        return Math.pow(d*volumeMultiplier*shapeSizeMultiplier,1.3)*0.08;
+                        return Math.pow(d*volumeMultiplier*shapeSizeMultiplier,1.3)*0.06;
                     })
                     .attr('fill', fillColour);
             }
@@ -1341,21 +1341,64 @@ function runVisualization() {
             renderGridChart();
     
         }
-    
+
         else if(visualizationChoice == "rings"){
             console.log("Run rings visualization");
     
+            var numLines = 15;
+            var numRings = 50;
+            var numShapes = numLines + numRings;
+
+            var ringsFrequencyData = new Uint8Array(numRings);
+
+            var maxRadius = Math.min(svgWidth, svgHeight)*0.9 / 2;
+            var minRadius = 1;
+
+            var minStrokeWidth = 0.1;
+            var maxStrokeWidth = 30;
+
+            var maxStrokeBoost = 0;
+
             //set max range of colours, based on frequency input 
             var hueRange = 250;
             var hueStart = fillHue - hueRange/2;
             var hueEnd = fillHue + hueRange/2;
     
-            analyser.smoothingTimeConstant = 0.9;
     
             if(svgWidth < 500){
     
             }
-    
+
+            //draw diagonal lines
+            var lines = svg.selectAll('line')
+                .data(new Array(numLines))
+                .enter().append('line')
+                .attr("x1",-10)
+                .attr("x2",svgWidth + 10)
+                .attr("y1",function(d,i){
+                    return svgHeight - ( svgHeight*0.3 - i * (svgHeight*0.7 / numLines));
+                })
+                .attr("y2",function(d,i){
+                    return svgHeight - ( svgHeight*0.7 - i * (svgHeight*0.7 / numLines));
+                })
+                .attr("stroke",strokeColour)
+                .attr("stroke-width", 10);
+
+            //draw circles
+            var rings = svg.selectAll('circle')
+                .data(new Array(numRings))
+                .enter().append('circle')
+                .attr("r", function(d,i) {
+                    return maxRadius - (i/numRings) * (maxRadius - minRadius);
+                })
+                .attr("cx", svgWidth / 2)
+                .attr("cy", svgHeight / 2)
+                .attr("fill", backgroundColour)
+                .attr("stroke-width", minStrokeWidth)
+                .attr("stroke", fillColour);
+                
+            analyser.smoothingTimeConstant = 0.8;
+            
             // Continuously loop and update chart with frequency data.
             function renderRingsChart() {
         
@@ -1363,59 +1406,37 @@ function runVisualization() {
                 analyser.getByteFrequencyData(ringsFrequencyData);
     
                 requestAnimationFrame(renderRingsChart);
-    
-                // scale things to fit
-                var radiusScale = d3.scalePow()
-                    .exponent(1.10)    
-                    .domain([0, 255])
-                    .range([0, Math.min(svgHeight, svgWidth) /2 - Math.min(svgHeight, svgWidth)*0.05]);
-    
+
                 /*
-                var radiusScale = d3.scaleLinear()
-                    .domain([0, 255])
-                    .range([0, svgHeight/2 - svgHeight*0.1]);
+                var lineFrequencyData = rings2FrequencyData.slice(0,numLines);
+                var ringFrequencyData = rings2FrequencyData.slice(numLines, numShapes);
                 */
-    
-                // d3.max(ringsFrequencyData)
-    
-                var hueScale = d3.scaleLinear()
-                    .domain([0, d3.max(ringsFrequencyData)])
-                    .range([hueStart, hueEnd]);
-    
+
                 // update d3 chart with new data
-                var rings = svg.selectAll('circle')
-                    .data(ringsFrequencyData);
-    
-                rings.enter().append('circle');
-    
-                rings
-                    .attr("r", function(d) { return radiusScale(d); })
-                    .attr("cx", svgWidth / 2)
-                    .attr("cy", svgHeight / 2)
-                    .attr("fill", function(d){
-                        if(colourChoice == "Noir"){
-                            return "white";
-                        } else {
-                            return d3.hsl(hueScale(d), 1, 0.5);
-                        }
-                    })
-                    .attr("fill-opacity",0.08)
-                    .attr("stroke-width", 4)
-                    .attr("stroke-opacity", 0.7)
-                    .attr("stroke", function(d) {
-                        if(colourChoice == "Noir"){
-                            return "white";
-                        } else {
-                            return d3.hsl(hueScale(d), 1, 0.5);
-                        }
+
+
+                /*
+                lines
+                    .data(lineFrequencyData)
+                    .attr("stroke-width", function(d,i){
+                        return 10;
                     });
-    
-                rings.exit().remove(); 
-    
+                */
+
+                rings
+                    .data(ringsFrequencyData)
+                    .attr("stroke-width", function(d,i){
+                        
+                        var strokeBoost = ((i+1) / numRings) * maxStrokeBoost;
+                        
+                        return Math.min(maxStrokeWidth, Math.max(minStrokeWidth, (d/35 + strokeBoost) ));
+                    });
+        
             }
     
             // Run the loop
             renderRingsChart();
+            
     
         }
     
@@ -1435,7 +1456,7 @@ function runVisualization() {
             var divisor = 3500;
     
             //set max range of colours, based on discussion from screen center
-            var hueRange = 125;
+            var hueRange = 80;
             var hueStart = fillHue - hueRange/2;
             var hueEnd = fillHue + hueRange/2;
     
@@ -1475,7 +1496,7 @@ function runVisualization() {
                         var xPosition = spiralXOffset + Math.cos(spiralAngle + spiralSpeed*i) * (spiralScalar + spiralSpeed*i);
                         var xOffset = Math.abs(xPosition - svgWidth/2);
     
-                        return d3.hsl(hueScale(yOffset + xOffset), 1, 0.5);
+                        return d3.hsl(hueScale(yOffset + xOffset), 0.8, 0.65);
                     }
                 })
                 .attr("r", minRadius)
