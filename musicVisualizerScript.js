@@ -97,7 +97,7 @@ var circles3Cols = 40;
 var circles3Rows = numCircles3 / circles3Cols;
 var circles3BottomMargin = 80;
 
-var numDancingCircles = 200;
+var numDancingCircles = 120;
 var dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
 
 var wavesRows = 8;
@@ -153,6 +153,7 @@ var palette8 = ["#652EC7", "#FFD300", "#DE38C8"];
 var palette9 = ["#B2FAFF", "#FF9472", "#FC6E22"];
 var palette10 = ["#C6FFF1", "#FF36AB", "#6153CC"];
 var palette11 = ["#f6d166", "#287e87", "#df2d2d"];
+var palette12 = ["#1B1663", "#D3FFDD", "#F287BB"];
 
 var backgroundColour;
 var fillColour;
@@ -641,7 +642,7 @@ function runVisualization() {
         circles3Rows = numCircles3 / circles3Cols;
         circles3BottomMargin = 40;
     
-        numDancingCircles = 75;
+        numDancingCircles = 60;
         dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
     
         wavesRows = 8;
@@ -713,6 +714,10 @@ function runVisualization() {
         backgroundColour = palette11[0];
         fillColour = palette11[1];
         strokeColour = palette11[2];
+    } else if(colourChoice == "Mint"){
+        backgroundColour = palette12[0];
+        fillColour = palette12[1];
+        strokeColour = palette12[2];
     }
 
     //convert fill colour HEX into RGB instead
@@ -873,7 +878,7 @@ function runVisualization() {
             console.log("Run circles3 visualization");
     
             svg.selectAll("circle").remove();
-            analyser.smoothingTimeConstant = 0.8;
+            analyser.smoothingTimeConstant = 0.88;
     
             // Create our initial D3 chart.
             svg.selectAll('circle')
@@ -908,7 +913,7 @@ function runVisualization() {
                         return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
                     })
                     .attr('r', function(d) {
-                        return Math.min(maxCircleSize, Math.max(Math.pow(d*volumeMultiplier*(shapeSizeMultiplier*1.2),1.05)*0.4-(50*shapeSizeMultiplier),0));
+                        return Math.min(maxCircleSize, Math.max(Math.pow(d*volumeMultiplier*(shapeSizeMultiplier*1.2),1.05)*0.35-(50*shapeSizeMultiplier),0));
                     })
                     .attr('fill', fillColour);
             }
@@ -923,7 +928,7 @@ function runVisualization() {
             var count = d3.selectAll("circle").size()
             console.log("# of circles: "+count);
     
-            analyser.smoothingTimeConstant = 0.85;
+            analyser.smoothingTimeConstant = 0.9;
     
             svg.selectAll("circle")
                 .data(dancingCirclesData)
@@ -951,7 +956,7 @@ function runVisualization() {
                 svg.selectAll("circle")
                     .attr('r', function(d, i) {
                         if(visualizationChoice == "dancingCircles"){
-                            return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.93) - (60*shapeSizeMultiplier) ));
+                            return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.91) - (60*shapeSizeMultiplier) ));
                         } else {
                             return 0;
                         }
@@ -1919,7 +1924,7 @@ function runVisualization() {
                     .data(grid2FrequencyData)
                     .attr("stroke-width", function(d,i){
 
-                        return Math.max(0, d/6 - 18);
+                        return Math.max(0, d/5.8 - 21);
                         
                     });
 
