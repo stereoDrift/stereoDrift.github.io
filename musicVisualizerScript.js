@@ -19,16 +19,19 @@ var colourChoice = String(colourMenu.value);
 var svgContainerDiv = document.getElementById("svgContainerDiv");
 var mainSvg = document.getElementById("mainSvg");
 
-var grainOpacityValue = 0.05;
+var svgHeight = svgContainerDiv.clientHeight;
+var svgWidth = svgContainerDiv.clientWidth;
+
+var grainOpacityValue = 0.04;
 
 var grainOptions = {
     animate: false,
-    patternWidth: 400,
-    patternHeight: 400,
+    patternWidth: 500,
+    patternHeight: 500,
     grainOpacity: grainOpacityValue,
-    grainDensity: 1.5,
+    grainDensity: Math.max(1.5, 1.5 * (1200 / svgWidth)),
     grainWidth: 2.5,
-    grainHeight: 2.0,
+    grainHeight: 2,
 };
 
 grained('#svgContainerDiv',grainOptions);
@@ -77,9 +80,6 @@ var menuTable = document.getElementById("menuTable");
 var delayInMilliseconds = 0;
 
 var navMenuHeight = document.getElementById('navMenuDiv').clientHeight;
-
-var svgHeight = svgContainerDiv.clientHeight;
-var svgWidth = svgContainerDiv.clientWidth;
 
 var infoMenuTable = document.getElementById("infoMenuTable");
 
@@ -274,6 +274,24 @@ function setSvgSize(){
 
         svgHeight = svgContainerDiv.clientHeight;
         svgWidth = svgContainerDiv.clientWidth;
+
+        //resize grain
+        if(isGrainOn == true){
+            grainOptions = {
+                animate: false,
+                patternWidth: 500,
+                patternHeight: 500,
+                grainOpacity: grainOpacityValue,
+                grainDensity: Math.max(1.5, 1.5 * (1200 / svgWidth)),
+                grainWidth: 2.5,
+                grainHeight: 2,
+            };
+            
+            grained('#svgContainerDiv',grainOptions);
+        
+        } else{
+
+        }
 }
 
 function toggleMenu(){
@@ -320,14 +338,14 @@ function toggleGrain(){
     } else{
         grainOptions = {
             animate: false,
-            patternWidth: 400,
-            patternHeight: 400,
+            patternWidth: 500,
+            patternHeight: 500,
             grainOpacity: grainOpacityValue,
-            grainDensity: 1.5,
+            grainDensity: Math.max(1.5, 1.5 * (1200 / svgWidth)),
             grainWidth: 2.5,
-            grainHeight: 2.0,
+            grainHeight: 2,
         };
-
+        
         isGrainOn = true;
 
     }
@@ -1345,7 +1363,9 @@ function runVisualization() {
         else if(visualizationChoice == "rings"){
             console.log("Run rings visualization");
     
-            var numLines = 15;
+            var numLines = 20;
+            var lineStrokeWidth = 8;
+
             var numRings = 40;
             var numShapes = numLines + numRings;
 
@@ -1372,7 +1392,8 @@ function runVisualization() {
     
     
             if(svgWidth < 500){
-    
+                var numLines = 12;
+                var lineStrokeWidth = 4;
             }
 
             //draw diagonal lines
@@ -1388,7 +1409,7 @@ function runVisualization() {
                     return svgHeight - ( svgHeight*0.7 - i * (svgHeight*0.7 / numLines));
                 })
                 .attr("stroke",strokeColour)
-                .attr("stroke-width", 10);
+                .attr("stroke-width", lineStrokeWidth);
 
             //draw circles
             var rings = svg.selectAll('circle')

@@ -10,6 +10,8 @@
 
     function grained(ele, opt) {
 
+        console.log("call Grained function");
+
         var element = null,
             elementId = null,
             selectorElement = null;
