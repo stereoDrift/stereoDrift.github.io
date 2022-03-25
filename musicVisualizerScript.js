@@ -143,7 +143,7 @@ var shapeSizeMultiplier = 1;
 
 //Colour palettes -- background, shape fill, shape outline
 var palette1 = ["#78B7C5", "#EBCC2A", "rgb(59,154,178)"];
-var palette2 = ['#F4ECFF', "#57EBF5", "#FFAAF6"];
+var palette2 = ['#7909c3', "#f72585", "#42c7f0"];
 var palette3 = ["rgb(0,0,0)", "#FFFFFF", "rgb(100,100,100)"];
 var palette4 = ["#5B1A18", "#FD6467", "#F1BB7B"];
 var palette5 = ["#2f5575", "#94f0dc", "rgb(255,255,255)"];
@@ -1874,7 +1874,9 @@ function runVisualization() {
             // Run the loop
             renderDotsChart();
 
-        } else if(visualizationChoice == "grid2") {
+        }
+        
+        else if(visualizationChoice == "grid2") {
             
             var numRows = 10;
             var numCols = 10;
@@ -1964,17 +1966,6 @@ function runVisualization() {
                     return svgHeight - (Math.floor(i / numCols) * verticalLength + verticalLength);
                 });
 
-
-
-            //set max range of colours, based on discussion from screen center
-            var hueRange = 125;
-            var hueStart = fillHue - hueRange/2;
-            var hueEnd = fillHue + hueRange/2;
-    
-            var hueScale = d3.scaleLinear()
-                .domain([0, svgHeight])
-                .range([hueStart, hueEnd]);
-    
             analyser.smoothingTimeConstant = 0.88;
 
             
@@ -1999,6 +1990,128 @@ function runVisualization() {
             renderGrid2Chart();
             
         }
+
+        else if(visualizationChoice == "warp") {
+            
+            console.log("run warp visual");
+
+            var numLines = 90;
+
+            var minStrokeWidth = 1;
+            var maxStrokeWidth = 16;
+
+            var arcGroup = [];
+            var startAngleArray = [];
+            var endAngleArray = [];
+            var innerRadiusArray = [];
+            var outerRadiusArray = [];
+
+            var maxAngleChange = Math.PI * 0.5;
+
+            
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 90;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+    
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
+            
+            
+            if(svgWidth < 500){
+                numLines = 60;
+                maxStrokeWidth = 8;
+            }
+
+            var warpFrequencyData = new Uint8Array(numLines);
+
+
+            //create initial arcs
+            for(var i=0; i<numLines; i++){
+
+                var randomAngle = (Math.random() * 2 + 1) * Math.PI;
+                var startAngle = randomAngle;
+                var endAngle = randomAngle;
+                
+                //var innerRadius = Math.random() * Math.min(svgWidth, svgHeight) / 2;
+                var innerRadius = (Math.min(svgWidth, svgHeight)/2 * 0.95 / numLines) * i;
+                var outerRadius = innerRadius + Math.random() * maxStrokeWidth;
+
+                startAngleArray.push(startAngle);
+                endAngleArray.push(endAngle);
+                innerRadiusArray.push(innerRadius);
+                outerRadiusArray.push(outerRadius);
+
+                var hueValue = hueScale(Math.random() * hueRange);
+                var saturationValue = Math.random() * 0.3 + 0.5;
+                var lightnessValue = Math.random() * 0.3 + 0.5;
+
+                var minOpacity = 0.00;
+
+                var singleArc = d3.arc()
+                    .startAngle(startAngle)
+                    .endAngle(endAngle)
+                    .innerRadius(innerRadius)
+                    .outerRadius(outerRadius);
+                
+                svg.append("path")
+                    .attr("d", singleArc)
+                    .attr("class","arc")
+                    .attr("fill", d3.hsl(hueValue, saturationValue, lightnessValue))
+                    .attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")");
+
+                arcGroup.push(singleArc);
+                
+            }
+
+
+
+            analyser.smoothingTimeConstant = 0.92;
+            
+            // Continuously loop and update chart with frequency data.
+            function renderWarpChart() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(warpFrequencyData);
+
+                requestAnimationFrame(renderWarpChart);
+
+                var t = performance.now();
+                var timeDivisor = 30000;
+                var timeShift = t/timeDivisor * Math.PI;
+
+                d3.selectAll(".arc")
+                    .data(warpFrequencyData)
+                    .attr("d", function(d,i){
+                        
+                        var newStartAngle = startAngleArray[i] + timeShift;
+                        //startAngleArray[i] = newStartAngle;
+
+                        var newEndAngle = endAngleArray[i] + (Math.max(0, d/255) * maxAngleChange) + timeShift;
+                        //endAngleArray[i] = newEndAngle;
+                        
+                        return d3.arc()
+                            .startAngle(newStartAngle)
+                            .endAngle(newEndAngle)
+                            .innerRadius(innerRadiusArray[i])
+                            .outerRadius(outerRadiusArray[i])(d);
+                    })
+                    .attr("fill-opacity", function(d,i){
+                        if(d > 60){
+                            return Math.pow(d,6) / Math.pow(190,6);
+                        } else{
+                            return minOpacity;
+                        }
+                    });
+
+            }
+
+            // Run the loop
+            renderWarpChart();
+            
+        }
+
+
 
     } else{
         console.log("Audio not playing");
@@ -2092,7 +2205,16 @@ function IgnoreAlpha(e) {
       e.returnValue = false;
       e.cancel = true;
     }
-  }
+}
+
+function pathTween(d) {
+    function p(t) {
+        return [d.r * Math.cos(d.t + t), d.r * Math.sin(d.t + t)];
+    }
+    return function(t) {
+        return "M" + p(0) + " A" + d.r + "," + d.r + " 0 " + (t < 0.5 ? 0 : 1) + " 1 " + p(t * Math.PI * 2);
+    }
+}
 
 
 /*
