@@ -2111,6 +2111,224 @@ function runVisualization() {
             
         }
 
+        else if(visualizationChoice == "bubbleBath") {
+            
+            //bound the randomness -- force even distribution on the x axis?
+            //two for loops for the circles, one behind the lines, one ahead of the lines
+
+            console.log("run moons visual");
+
+            var numLines = 4;
+            var linePoints = 15;
+            var numCircles = 25;
+            var numDataPoints = numLines*linePoints + numCircles;
+
+            var lineStrokeWidth = 12;
+
+            var minRadius = 20;
+            var maxRadius = 80;
+
+            var opacity = 0.20;
+            var maxCircleStrokeWidth = 15;
+
+            var lineOffset1 = 0.05;
+            var lineOffset2 = 0.25;
+            var lineOffset3 = 0.45;
+            var lineOffset4 = 0.65;
+
+            
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 90;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+    
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
+            
+            
+            if(svgWidth < 500){
+                numLines = 3;
+                linePoints = 15;
+                numCircles = 15;
+                numDataPoints = numLines*linePoints + numCircles;
+    
+                lineStrokeWidth = 8;
+    
+                minRadius = 10;
+                maxRadius = 40;
+    
+                opacity = 0.20;
+                maxCircleStrokeWidth = 10;
+            }
+
+            var moonsFrequencyData = new Uint8Array(numDataPoints);
+
+
+            //create and place shapes
+
+
+            //draw some of the cirles behind of the lines
+            for(var i=0; i<numCircles; i++){
+            
+                if(i%2 == 0){
+                    svg
+                    .append('circle')
+                    .attr("fill",fillColour)
+                    .attr('r', minRadius)
+                    .attr('stroke',fillColour)
+                    .attr('stroke-width', Math.random() * maxCircleStrokeWidth)
+                    .attr('fill-opacity', Math.random() + 0.1)
+                    .attr('cx', svgWidth/numCircles * i + (svgWidth/numCircles/2) )
+                    .attr('cy', Math.random()*(svgHeight*0.9) );
+                }
+
+            }
+
+
+            var line1Data = new Uint8Array(linePoints);
+            var line2Data = new Uint8Array(linePoints);
+            var line3Data = new Uint8Array(linePoints);
+            var line4Data = new Uint8Array(linePoints);
+
+            var line1 = svg.append("path")
+                .datum(line1Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(svgHeight)
+                    .y1(function(d) { return svgHeight - svgHeight*lineOffset1 })
+                    .curve(d3.curveBasis)
+                );
+
+            var line2 = svg.append("path")
+                .datum(line2Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(svgHeight)
+                    .y1(function(d) { return svgHeight - svgHeight*lineOffset2 })
+                    .curve(d3.curveBasis)
+                );
+
+            var line3 = svg.append("path")
+                .datum(line3Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(svgHeight)
+                    .y1(function(d) { return svgHeight - svgHeight*lineOffset3 })
+                    .curve(d3.curveBasis)
+                );
+            
+            var line4 = svg.append("path")
+                .datum(line4Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(svgHeight)
+                    .y1(function(d) { return svgHeight - svgHeight*lineOffset4 })
+                    .curve(d3.curveBasis)
+                );
+
+            
+            //draw some of the cirles on top of the lines
+            for(var i=0; i<numCircles; i++){
+            
+                if(i%2 != 0){
+                    svg
+                    .append('circle')
+                    .attr("fill",fillColour)
+                    .attr('r', minRadius)
+                    .attr('stroke',fillColour)
+                    .attr('stroke-width', Math.random() * maxCircleStrokeWidth)
+                    .attr('fill-opacity', Math.random() + 0.1)
+                    .attr('cx', svgWidth/numCircles * i + (svgWidth/numCircles/2) )
+                    .attr('cy', Math.random()*(svgHeight*0.9) );
+                }
+
+            }
+            
+    
+
+
+            analyser.smoothingTimeConstant = 0.92;
+            
+            // Continuously loop and update chart with frequency data.
+            function renderMoonsChart() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(moonsFrequencyData);
+
+                requestAnimationFrame(renderMoonsChart);
+
+                line1Data = moonsFrequencyData.slice(0,linePoints);
+                line2Data = moonsFrequencyData.slice(linePoints,linePoints*2);
+                line3Data = moonsFrequencyData.slice(linePoints*2,linePoints*3);
+                line4Data = moonsFrequencyData.slice(linePoints*3,linePoints*4);
+                
+                circleData = moonsFrequencyData.slice(-numCircles);
+
+                line1
+                    .datum(line1Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(svgHeight)
+                        .y1(function(d,i) { return svgHeight - (svgHeight*lineOffset1 + d) })
+                        .curve(d3.curveBasis)
+                    );
+                    
+                line2
+                    .datum(line2Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(svgHeight)
+                        .y1(function(d,i) { return svgHeight - (svgHeight*lineOffset2 + d) })
+                        .curve(d3.curveBasis)
+                    );
+                    
+                line3
+                    .datum(line3Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(svgHeight)
+                        .y1(function(d,i) { return svgHeight - (svgHeight*lineOffset3 + d) })
+                        .curve(d3.curveBasis)
+                    );
+                    
+                line4
+                    .datum(line4Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(svgHeight)
+                        .y1(function(d,i) { return svgHeight - (svgHeight*lineOffset4 + d) })
+                        .curve(d3.curveBasis)
+                    );
+                    
+                svg.selectAll('circle')
+                    .data(circleData)
+                    .attr('r', function(d,i){
+                        return Math.max(0, (d-100) * (Math.min(svgWidth, svgHeight) / 1000) );
+                    });
+
+            }
+
+            // Run the loop
+            renderMoonsChart();
+            
+        }
+
 
 
     } else{
