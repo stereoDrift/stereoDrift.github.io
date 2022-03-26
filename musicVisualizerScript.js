@@ -2120,7 +2120,7 @@ function runVisualization() {
 
             var numLines = 4;
             var linePoints = 15;
-            var numCircles = 25;
+            var numCircles = 20;
             var numDataPoints = numLines*linePoints + numCircles;
 
             var lineStrokeWidth = 12;
@@ -2150,7 +2150,7 @@ function runVisualization() {
             if(svgWidth < 500){
                 numLines = 3;
                 linePoints = 15;
-                numCircles = 15;
+                numCircles = 10;
                 numDataPoints = numLines*linePoints + numCircles;
     
                 lineStrokeWidth = 8;
@@ -2319,7 +2319,7 @@ function runVisualization() {
                 svg.selectAll('circle')
                     .data(circleData)
                     .attr('r', function(d,i){
-                        return Math.max(0, (d-100) * (Math.min(svgWidth, svgHeight) / 1000) );
+                        return Math.max(0, (d-100) * (Math.min(svgWidth, svgHeight) / 1100) );
                     });
 
             }
