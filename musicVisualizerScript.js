@@ -2119,7 +2119,7 @@ function runVisualization() {
             console.log("run moons visual");
 
             var numLines = 4;
-            var linePoints = 15;
+            var linePoints = 13;
             var numCircles = 20;
             var numDataPoints = numLines*linePoints + numCircles;
 
@@ -2149,7 +2149,7 @@ function runVisualization() {
             
             if(svgWidth < 500){
                 numLines = 3;
-                linePoints = 15;
+                linePoints = 13;
                 numCircles = 10;
                 numDataPoints = numLines*linePoints + numCircles;
     
@@ -2319,7 +2319,7 @@ function runVisualization() {
                 svg.selectAll('circle')
                     .data(circleData)
                     .attr('r', function(d,i){
-                        return Math.max(0, (d-100) * (Math.min(svgWidth, svgHeight) / 1100) );
+                        return Math.max(0, (d-100) * (Math.min(svgWidth, svgHeight) / 1200) );
                     });
 
             }
