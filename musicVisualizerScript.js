@@ -85,17 +85,13 @@ var infoMenuTable = document.getElementById("infoMenuTable");
 
 var isAudioPlaying = false;
 
-//var fps = 30;
-
 //Visualization Inputs
 var barPadding = 1;
 var numBars = 400;
-var numCircles = 25;
-var numCircles2 = 75;
-var numCircles3 = 400;
-var circles3Cols = 40;
-var circles3Rows = numCircles3 / circles3Cols;
-var circles3BottomMargin = 80;
+var numCircles = 140;
+var circlesCols = 20;
+var circlesRows = numCircles / circlesCols;
+var circlesBottomMargin = svgHeight * 0.08;
 
 var numDancingCircles = 120;
 var dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
@@ -110,8 +106,8 @@ var joyPlotN = 360;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
-var numCellWidth = 25;
-var numCellHeight = 20;
+var numCellWidth = 20;
+var numCellHeight = 16;
 var numCells = numCellHeight * numCellWidth;
 var maxCellStrokeWidth = 4;
 
@@ -127,8 +123,6 @@ var numVerticalLines = numHill;
 
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
-var circles2FrequencyData = new Uint8Array(numCircles2);
-var circles3FrequencyData = new Uint8Array(numCircles3);
 var dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
 var wavesFrequencyData = new Uint8Array(wavesRows);
 var wireFrequencyData = new Uint8Array(1);
@@ -154,6 +148,7 @@ var palette9 = ["#B2FAFF", "#FF9472", "#FC6E22"];
 var palette10 = ["#C6FFF1", "#FF36AB", "#6153CC"];
 var palette11 = ["#f6d166", "#287e87", "#df2d2d"];
 var palette12 = ["#1B1663", "#D3FFDD", "#F287BB"];
+var palette13 = ["#1A1831", "#20615B", "#DECE9C"];
 
 var backgroundColour;
 var fillColour;
@@ -167,7 +162,7 @@ var isKeyPressed = {
     'c': false, // ASCII code for 'c'
     'v': false,
     'm': false,
-    'p': false,
+    " ": false,
     'r': false,
     'g': false,
 
@@ -194,7 +189,7 @@ document.onkeydown = (keyDownEvent) => {
         toggleMenu();
     }
 
-    if (isKeyPressed["p"]) {
+    if (isKeyPressed[" "]) {
         toggleAudioPlay();
     }
     
@@ -653,12 +648,10 @@ function runVisualization() {
     if(svgWidth < 500){
         barPadding = 0;
         numBars = 200;
-        numCircles = 15;
-        numCircles2 = 45;
-        numCircles3 = 175;
-        circles3Cols = 25;
-        circles3Rows = numCircles3 / circles3Cols;
-        circles3BottomMargin = 40;
+        numCircles = 140;
+        circlesCols = 20;
+        circlesRows = numCircles / circlesCols;
+        circlesBottomMargin = svgHeight * 0.05;
     
         numDancingCircles = 60;
         dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
@@ -675,8 +668,6 @@ function runVisualization() {
     
         barsFrequencyData = new Uint8Array(numBars);
         circlesFrequencyData = new Uint8Array(numCircles);
-        circles2FrequencyData = new Uint8Array(numCircles2);
-        circles3FrequencyData = new Uint8Array(numCircles3);
         dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
         wavesFrequencyData = new Uint8Array(wavesRows);
         wireFrequencyData = new Uint8Array(1);
@@ -736,6 +727,10 @@ function runVisualization() {
         backgroundColour = palette12[0];
         fillColour = palette12[1];
         strokeColour = palette12[2];
+    } else if(colourChoice == "Analog"){
+        backgroundColour = palette13[0];
+        fillColour = palette13[1];
+        strokeColour = palette13[2];
     }
 
     //convert fill colour HEX into RGB instead
@@ -797,138 +792,44 @@ function runVisualization() {
             renderBarChart();
     
         }
-    
+        
         else if(visualizationChoice == "circles"){
             console.log("Run circles visualization");
-    
-            analyser.smoothingTimeConstant = 0.8;
-    
-            // Create our initial D3 chart.
-            svg.selectAll('circle')
-            .data(circlesFrequencyData)
-            .enter()
-            .append('circle')
-            .attr('cx', function (d, i) {
-                return i * (svgWidth / circlesFrequencyData.length);
-            })
-            .attr('cy', function (d, i) {
-                return svgHeight - (i * (svgHeight / circlesFrequencyData.length));
-                //return svgHeight/2;
-            })
-            .attr('r', '2')
-            .attr('stroke', strokeColour)
-            .attr('stroke-width', '2')
-            .attr('opacity',function (d, i) {
-                return Math.random()+0.05;
-            });
-        
-            // Continuously loop and update chart with frequency data.
-            function renderCircleChart() {
-           
-                // Copy frequency data to frequencyData array.
-                analyser.getByteFrequencyData(circlesFrequencyData);
-    
-    
-                requestAnimationFrame(renderCircleChart);
-    
-                // Update d3 chart with new data.
-                svg.selectAll('circle')
-                    .data(circlesFrequencyData)
-                    .attr('r', function(d) {
-                        return Math.pow(d*volumeMultiplier*shapeSizeMultiplier,0.85)*1.5;
-                    })
-                    .attr('fill', fillColour);
-            }
-        
-            // Run the loop
-            renderCircleChart();
-            
-        }
-    
-        else if(visualizationChoice == "circles2"){
-            console.log("Run circles2 visualization");
-    
-            svg.selectAll("circle").remove();
-    
-            analyser.smoothingTimeConstant = 0.75;
-    
-            // Create our initial D3 chart.
-            svg.selectAll('circle')
-                .data(circles2FrequencyData)
-                .enter()
-                .append('circle')
-                .attr('cx', function (d, i) {
-                    return i * (svgWidth / circles2FrequencyData.length);
-                })
-                .attr('cy', function (d, i) {
-                    return Math.random() * svgHeight;
-                    //return svgHeight/2;
-                })
-                .attr('r', '2')
-                .attr('stroke', strokeColour)
-                .attr('stroke-width', '2')
-                .attr('opacity', 0.65);
-        
-            // Continuously loop and update chart with frequency data.
-            function renderCircle2Chart() {
-                
-                // Copy frequency data to frequencyData array.
-                analyser.getByteFrequencyData(circles2FrequencyData);
-    
-    
-                requestAnimationFrame(renderCircle2Chart);
-    
-    
-                // Update d3 chart with new data.
-                svg.selectAll('circle')
-                    .data(circles2FrequencyData)
-                    .attr('r', function(d) {
-                        return Math.pow(d*volumeMultiplier*shapeSizeMultiplier,1.3)*0.06;
-                    })
-                    .attr('fill', fillColour);
-            }
-        
-            // Run the loop
-            renderCircle2Chart();
-        }
-    
-        else if(visualizationChoice == "circles3"){
-            console.log("Run circles3 visualization");
     
             svg.selectAll("circle").remove();
             analyser.smoothingTimeConstant = 0.88;
     
             // Create our initial D3 chart.
             svg.selectAll('circle')
-                .data(circles3FrequencyData)
+                .data(circlesFrequencyData)
                 .enter()
                 .append('circle')
                 .attr('cx', function (d, i) {
-                    return (i % circles3Cols) * (svgWidth / circles3Cols);
+                    return (i % circlesCols) * (svgWidth / circlesCols);
                 })
                 .attr('cy', function (d, i) {
-                    return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
+                    return (svgHeight - circlesBottomMargin) - (Math.floor(i / circlesCols) * (svgHeight / circlesRows));
                 })
                 .attr('r', '2')
                 .attr('stroke', strokeColour)
                 .attr('stroke-width', '2');
         
             // Continuously loop and update chart with frequency data.
-            function renderCircle3Chart() {
+            function renderCircleChart() {
                 
                 // Copy frequency data to frequencyData array.
-                analyser.getByteFrequencyData(circles3FrequencyData);
+                analyser.getByteFrequencyData(circlesFrequencyData);
     
-                requestAnimationFrame(renderCircle3Chart);
+                requestAnimationFrame(renderCircleChart);
     
                 // Update d3 chart with new data.
                 svg.selectAll('circle')
-                    .data(circles3FrequencyData)
+                    .data(circlesFrequencyData)
                     .attr('cx', function (d, i) {
-                        return (i % circles3Cols) * (svgWidth / circles3Cols);
+                        return (i % circlesCols) * (svgWidth / circlesCols);
                     })
                     .attr('cy', function (d, i) {
-                        return (svgHeight - circles3BottomMargin) - (Math.floor(i / circles3Cols) * (svgHeight / circles3Rows));
+                        return (svgHeight - circlesBottomMargin) - (Math.floor(i / circlesCols) * (svgHeight / circlesRows));
                     })
                     .attr('r', function(d) {
                         return Math.min(maxCircleSize, Math.max(Math.pow(d*volumeMultiplier*(shapeSizeMultiplier*1.2),1.05)*0.35-(50*shapeSizeMultiplier),0));
@@ -937,7 +838,75 @@ function runVisualization() {
             }
         
             // Run the loop
-            renderCircle3Chart();
+            renderCircleChart();
+        }
+
+        else if(visualizationChoice == "circles2"){
+            
+            var minDiameter = 50;
+            var maxDiameter = 100;
+            var targetNumDotWidth = 30;
+            var dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
+
+            if(svgWidth < 500){
+                minDiameter = 40;
+                maxDiameter = 80;
+                targetNumDotWidth = 15;
+                dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
+            }
+
+            //reset min diameter to the actual dot diameter, so that dots never shrink in the animation
+            minDiameter = dotDiameter;
+            maxDiameter = 2*minDiameter;
+
+            var numDotsWidth = Math.ceil(svgWidth / dotDiameter);
+            var numDotsHeight = Math.ceil(svgHeight / dotDiameter);
+
+            var numDots = numDotsWidth * numDotsHeight;
+            var dotsFrequencyData = new Uint8Array(numDots);
+
+            console.log("diameter: "+dotDiameter+", numDotsWidth: "+numDotsWidth+", numDotsHeight: "+numDotsHeight);
+
+            var minStrokeWidth = 1;
+            var minOpacity = 0.3;
+            
+            //draw initial grid of dots
+            var dots = svg.selectAll("circle")
+                .data(dotsFrequencyData)
+                .enter().append("circle")
+                .attr("fill", fillColour)
+                .attr("fill-opacity", minOpacity)
+                .attr("r", dotDiameter/2)
+                .attr("cx",function(d,i){
+                    return dotDiameter * (i % numDotsWidth) + dotDiameter/2;
+                })
+                .attr("cy",function(d,i){
+                    return svgHeight - (dotDiameter * (Math.floor(i / numDotsWidth)) + dotDiameter/2);
+                });
+
+            analyser.smoothingTimeConstant = 0.94;
+
+            // Continuously loop and update chart with frequency data.
+            function renderDotsChart() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(dotsFrequencyData);
+
+                requestAnimationFrame(renderDotsChart);
+
+                dots   
+                    .data(dotsFrequencyData)
+                    .attr("r", function(d,i){
+                        //return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/4.5 ));
+
+                        return Math.min(maxDiameter/2, (minDiameter/2 * (1+ Math.pow(d,3)/ Math.pow(200,3) )) );
+                        
+                    });
+    
+            }
+    
+            // Run the loop
+            renderDotsChart();
+
         }
     
         else if(visualizationChoice == "dancingCircles"){
@@ -1282,7 +1251,7 @@ function runVisualization() {
         else if(visualizationChoice == "grid"){
             console.log("Run grid visualization");
     
-            analyser.smoothingTimeConstant = 0.92;
+            analyser.smoothingTimeConstant = 0.96;
     
             if(svgWidth < 500){
                 numCellWidth = 10;
@@ -1300,7 +1269,7 @@ function runVisualization() {
             var minStrokeWidth = 0.0;
     
             var exponent = 10;
-            var divisor = 8;
+            var divisor = 4;
     
             var gridFrequencyData = new Uint8Array(numCells);
     
@@ -1345,12 +1314,12 @@ function runVisualization() {
                         if(colourChoice == "Noir"){
                             return "white";
                         } else {
-                            return d3.hsl(hueScale(d), 1, 0.5);
+                            return d3.hsl(hueScale(d), 0.6, 0.6);
                         }
                     })
-                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, d/70+minStrokeWidth)})
+                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-100)/70)+minStrokeWidth)})
                     .attr("fill-opacity",function(d) {
-                        return Math.min(Math.pow(d,exponent)/(Math.pow(255,exponent-1)/ divisor),1)*maxOpacity;
+                        return Math.min(Math.max(0, Math.pow(d-50,exponent)/(Math.pow(140,exponent-1)/ divisor)),1)*maxOpacity;
                     });
     
             }
@@ -1808,72 +1777,6 @@ function runVisualization() {
             // Run the loop
             renderHexagonsChart();
     
-        } else if(visualizationChoice == "dots"){
-            
-            var minDiameter = 50;
-            var maxDiameter = 100;
-            var targetNumDotWidth = 30;
-            var dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
-
-            if(svgWidth < 500){
-                minDiameter = 40;
-                maxDiameter = 80;
-                targetNumDotWidth = 15;
-                dotDiameter = Math.min(maxDiameter, Math.max(minDiameter, svgWidth / targetNumDotWidth));
-            }
-
-            //reset min diameter to the actual dot diameter, so that dots never shrink in the animation
-            minDiameter = dotDiameter;
-            maxDiameter = 2*minDiameter;
-
-            var numDotsWidth = Math.ceil(svgWidth / dotDiameter);
-            var numDotsHeight = Math.ceil(svgHeight / dotDiameter);
-
-            var numDots = numDotsWidth * numDotsHeight;
-            var dotsFrequencyData = new Uint8Array(numDots);
-
-            console.log("diameter: "+dotDiameter+", numDotsWidth: "+numDotsWidth+", numDotsHeight: "+numDotsHeight);
-
-            var minStrokeWidth = 1;
-            var minOpacity = 0.3;
-            
-            //draw initial grid of dots
-            var dots = svg.selectAll("circle")
-                .data(dotsFrequencyData)
-                .enter().append("circle")
-                .attr("fill", fillColour)
-                .attr("fill-opacity", minOpacity)
-                .attr("r", dotDiameter/2)
-                .attr("cx",function(d,i){
-                    return dotDiameter * (i % numDotsWidth) + dotDiameter/2;
-                })
-                .attr("cy",function(d,i){
-                    return svgHeight - (dotDiameter * (Math.floor(i / numDotsWidth)) + dotDiameter/2);
-                });
-
-            analyser.smoothingTimeConstant = 0.94;
-
-            // Continuously loop and update chart with frequency data.
-            function renderDotsChart() {
-                // Copy frequency data to frequencyData array.
-                analyser.getByteFrequencyData(dotsFrequencyData);
-
-                requestAnimationFrame(renderDotsChart);
-
-                dots   
-                    .data(dotsFrequencyData)
-                    .attr("r", function(d,i){
-                        //return Math.min(maxDiameter/2, Math.max(minDiameter/2, d/4.5 ));
-
-                        return Math.min(maxDiameter/2, (minDiameter/2 * (1+ Math.pow(d,3)/ Math.pow(200,3) )) );
-                        
-                    });
-    
-            }
-    
-            // Run the loop
-            renderDotsChart();
-
         }
         
         else if(visualizationChoice == "grid2") {
@@ -2131,10 +2034,10 @@ function runVisualization() {
             var opacity = 0.20;
             var maxCircleStrokeWidth = 15;
 
-            var lineOffset1 = 0.05;
-            var lineOffset2 = 0.25;
-            var lineOffset3 = 0.45;
-            var lineOffset4 = 0.65;
+            var lineOffset1 = 0.00;
+            var lineOffset2 = 0.2;
+            var lineOffset3 = 0.4;
+            var lineOffset4 = 0.6;
 
             
             //set max range of colours, based on discussion from screen center
@@ -2180,7 +2083,7 @@ function runVisualization() {
                     .attr('stroke-width', Math.random() * maxCircleStrokeWidth)
                     .attr('fill-opacity', Math.random() + 0.1)
                     .attr('cx', svgWidth/numCircles * i + (svgWidth/numCircles/2) )
-                    .attr('cy', Math.random()*(svgHeight*0.9) );
+                    .attr('cy', svgHeight - (Math.random()*(svgHeight*0.9) + svgHeight*0.05) );
                 }
 
             }
@@ -2230,7 +2133,8 @@ function runVisualization() {
                     .curve(d3.curveBasis)
                 );
             
-            var line4 = svg.append("path")
+            if(svgWidth>=500){
+                var line4 = svg.append("path")
                 .datum(line4Data)
                 .attr("fill", strokeColour)
                 .attr("fill-opacity",opacity)
@@ -2242,6 +2146,8 @@ function runVisualization() {
                     .y1(function(d) { return svgHeight - svgHeight*lineOffset4 })
                     .curve(d3.curveBasis)
                 );
+            }
+
 
             
             //draw some of the cirles on top of the lines
@@ -2256,7 +2162,7 @@ function runVisualization() {
                     .attr('stroke-width', Math.random() * maxCircleStrokeWidth)
                     .attr('fill-opacity', Math.random() + 0.1)
                     .attr('cx', svgWidth/numCircles * i + (svgWidth/numCircles/2) )
-                    .attr('cy', Math.random()*(svgHeight*0.9) );
+                    .attr('cy', svgHeight - (Math.random()*(svgHeight*0.9) + svgHeight*0.05) );
                 }
 
             }
@@ -2276,7 +2182,10 @@ function runVisualization() {
                 line1Data = moonsFrequencyData.slice(0,linePoints);
                 line2Data = moonsFrequencyData.slice(linePoints,linePoints*2);
                 line3Data = moonsFrequencyData.slice(linePoints*2,linePoints*3);
-                line4Data = moonsFrequencyData.slice(linePoints*3,linePoints*4);
+                
+                if(svgWidth>=500){
+                    line4Data = moonsFrequencyData.slice(linePoints*3,linePoints*4);
+                }
                 
                 circleData = moonsFrequencyData.slice(-numCircles);
 
@@ -2307,7 +2216,8 @@ function runVisualization() {
                         .curve(d3.curveBasis)
                     );
                     
-                line4
+                if(svgWidth>=500){
+                    line4
                     .datum(line4Data)
                     .attr("d", d3.area()
                         .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
@@ -2315,7 +2225,8 @@ function runVisualization() {
                         .y1(function(d,i) { return svgHeight - (svgHeight*lineOffset4 + d) })
                         .curve(d3.curveBasis)
                     );
-                    
+                }
+
                 svg.selectAll('circle')
                     .data(circleData)
                     .attr('r', function(d,i){
