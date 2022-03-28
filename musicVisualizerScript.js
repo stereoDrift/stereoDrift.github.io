@@ -2019,7 +2019,7 @@ function runVisualization() {
             //bound the randomness -- force even distribution on the x axis?
             //two for loops for the circles, one behind the lines, one ahead of the lines
 
-            console.log("run moons visual");
+            console.log("run bubbleBath visual");
 
             var numLines = 4;
             var linePoints = 13;
@@ -2240,6 +2240,169 @@ function runVisualization() {
             
         }
 
+        else if(visualizationChoice == "loop") {
+
+            console.log("run loop visual");
+
+            var numCircles1 = 20;
+            var pathRadius1 = Math.min(svgWidth, svgHeight) / 2 * 0.6;
+            var minCircles1Radius = 10;
+            
+            var numCircles2 = 20;
+            var pathRadius2 = Math.min(svgWidth, svgHeight) / 2 * 0.6;
+            var minCircles2Radius = 0;
+
+            var pathRadiusFlex = Math.min(svgWidth, svgHeight) / 2 * 0.25;
+
+            var numCirclesTotal = numCircles1+ numCircles2;
+
+            var maxStrokeWidth = 5;
+            var opacity = 0.5;
+
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 0;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+    
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
+            
+            
+            if(svgWidth < 500){
+
+            }
+
+            var loopFrequencyData = new Uint8Array(numCirclesTotal);
+
+            //evenly distribute the circles along the circle path at the first draw?
+
+            //create and place shapes
+            
+            for(var i=0; i<numCircles1; i++){
+
+                var hueValue = hueScale(Math.random()*hueRange);
+                var saturationValue = Math.random()*0.3 + 0.5;
+                var lightnessValue = Math.random()*0.3 + 0.5;
+
+                svg
+                    .append('circle')
+                    .attr('class',"circle1")
+                    .attr("fill", fillColour)
+                    .attr('r', minCircles1Radius)
+                    .attr('stroke',strokeColour)
+                    .attr('stroke-width', maxStrokeWidth)
+                    .attr('fill-opacity', opacity)
+                    .attr('cx', function(d,i){
+                        return svgWidth/2 + pathRadius1 * Math.cos(i+1);
+                    })
+                    .attr('cy', function(d,i){
+                        return svgHeight/2 + pathRadius1 * Math.sin(i+1);
+                    });
+
+            }
+
+            for(var i=0; i<numCircles2; i++){
+
+                svg
+                    .append('circle')
+                    .attr('class',"circle2")
+                    .attr("fill",strokeColour)
+                    .attr('r', minCircles2Radius)
+                    .attr('stroke',fillColour)
+                    .attr('stroke-width', maxStrokeWidth)
+                    .attr('fill-opacity', opacity)
+                    .attr('cx', function(d,i){
+                        return svgWidth/2 + pathRadius2 * Math.cos(i+1);
+                    })
+                    .attr('cy', function(d,i){
+                        return svgHeight/2 + pathRadius2 * Math.sin(i+1);
+                    });
+
+            }
+            
+
+            /*
+            var circles1 = svg.selectAll('circle')
+                .data(loopFrequencyData)
+                .enter()
+                .append('circle')
+                .attr('class',"circle1")
+                .attr("fill",fillColour)
+                .attr('r', minCircleRadius)
+                .attr('stroke',strokeColour)
+                .attr('stroke-width', strokeWidth)
+                .attr('fill-opacity', opacity)
+                .attr('cx', function(d,i){
+                    return svgWidth/2 + pathRadius * Math.cos(i+1);
+                })
+                .attr('cy', function(d,i){
+                    return svgHeight/2 + pathRadius * Math.sin(i+1);
+                });
+            */
+ 
+            analyser.smoothingTimeConstant = 0.90;
+            
+            // Continuously loop and update chart with frequency data.
+            function renderLoopChart() {
+                // Copy frequency data to frequencyData array.
+                
+                var t = performance.now();
+                var timeDivisor = 12000;
+
+                //pathRadius2 = Math.max(1, pathRadius2 + pathRadiusFlex * Math.cos(t/timeDivisor));
+                var newPathRadius1 = Math.max(1, pathRadius1 + pathRadiusFlex * Math.cos(t/timeDivisor));
+                var newPathRadius2 = Math.max(1, pathRadius2 + pathRadiusFlex * Math.sin(t/timeDivisor));
+
+
+                analyser.getByteFrequencyData(loopFrequencyData);
+
+                var circle1FrequencyData = loopFrequencyData.slice(0,numCircles1);
+                var circle2FrequencyData = loopFrequencyData.slice(numCircles1,numCirclesTotal);
+ 
+
+                requestAnimationFrame(renderLoopChart);
+
+
+                svg.selectAll(".circle1")
+                    .data(circle1FrequencyData)    
+                    .attr('cx',function(d,i){
+                        //var x = svgWidth/2 + pathRadius * Math.cos(t * (i+1) / timeDivisor);
+                        var x = svgWidth/2 + newPathRadius1 * Math.cos( t / (timeDivisor / (1 + i/numCircles1)) + (2*Math.PI / numCircles1 * i));
+                        return x;
+                    })
+                    .attr('cy',function(d,i){
+                        //var y = svgHeight/2 + pathRadius * Math.sin(t * (i+1) / timeDivisor);
+                        var y = svgHeight/2 + newPathRadius1 * Math.sin( t / (timeDivisor / (1 + i/numCircles1)) + (2*Math.PI / numCircles1 * i));
+
+                        return y;
+                    })
+                    .attr('r', function(d,i){
+                        return Math.max(minCircles1Radius, Math.pow((d-130),1.15) * (Math.min(svgWidth, svgHeight) / 3000) );
+                    });
+
+                svg.selectAll(".circle2")
+                    .data(circle2FrequencyData)    
+                    .attr('cx',function(d,i){
+                        var x = svgWidth/2 - newPathRadius2 * Math.cos( t / (timeDivisor / (1 + i/numCircles2)) + (2*Math.PI / numCircles2 * i));
+                        return x;
+                    })
+                    .attr('cy',function(d,i){
+                        //var y = svgHeight/2 + pathRadius * Math.sin(t * (i+1) / timeDivisor);
+                        var y = svgHeight/2 + newPathRadius2 * Math.sin( t / (timeDivisor / (1 + i/numCircles2)) + (2*Math.PI / numCircles2 * i));
+
+                        return y;
+                    })
+                    .attr('r', function(d,i){
+                        return Math.max(minCircles2Radius, (d-150) * (Math.min(svgWidth, svgHeight) / 1100) );
+                    });
+
+            }
+
+            // Run the loop
+            renderLoopChart();
+            
+        }
 
 
     } else{
