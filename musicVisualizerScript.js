@@ -149,6 +149,7 @@ var palette10 = ["#C6FFF1", "#FF36AB", "#6153CC"];
 var palette11 = ["#f6d166", "#287e87", "#df2d2d"];
 var palette12 = ["#1B1663", "#D3FFDD", "#F287BB"];
 var palette13 = ["#1A1831", "#20615B", "#DECE9C"];
+var palette14 = ["#FFFF00", "#0000FF", "#FF0000"]; //primary
 
 var backgroundColour;
 var fillColour;
@@ -731,6 +732,10 @@ function runVisualization() {
         backgroundColour = palette13[0];
         fillColour = palette13[1];
         strokeColour = palette13[2];
+    } else if(colourChoice == "Primary"){
+        backgroundColour = palette14[0];
+        fillColour = palette14[1];
+        strokeColour = palette14[2];
     }
 
     //convert fill colour HEX into RGB instead
@@ -2403,6 +2408,148 @@ function runVisualization() {
             renderLoopChart();
             
         }
+
+        else if(visualizationChoice == "mondrian") {
+
+            //Mondrian generator source code from Christopher Lovell https://gist.github.com/christopherlovell/9d532ce94c48c6ff4b9f97ef323e3c6a
+
+            console.log("run Mondrian visual");
+
+            var padding = 30;
+
+            var colours = [backgroundColour, fillColour, strokeColour, 'white']
+            var colour_prob = [0.22, 0.22, 0.22, 0.34]  // probability of appearance of each colour
+        
+            // cumulative colour probabilities
+            var colour_cum_prob = [];
+            colour_prob.reduce(function(a,b,i) { return colour_cum_prob[i] = a+b; },0);
+        
+            var fractions = [1/5, 2/5, 3/5, 4/5]  // hard coded split fractions
+            var tol = 100;  // height/width tolerance on which to split
+            var recurs = 8;  // level of recursion
+
+            var rectangleColourArray = [];
+
+            var strokeWidth = 5;
+
+            var changeTolerance = 28; //change in audio frequency at which to change colour
+
+            
+            if(svgWidth < 500){
+
+            }
+        
+            // initialise array of rectangles with a single, giant rectangle (..square)
+            var rectangles = [{"x": 0, "y": 0, "width": svgWidth, "height": svgHeight}]
+
+
+            //draw initial Mondrian
+
+            var j = 0;  // recursion counter
+            while(j < recurs){
+                j++;
+
+                n = rectangles.length;  // number of initial rectangles in this loop
+                to_remove = [];  // array of indices of rectangles to remove
+
+                // loop through existing rectangles
+                for(var i=0; i<n; i++){
+
+                    // test if rectangle already small
+                    if(rectangles[i]['width'] > tol && rectangles[i]['height'] > tol){
+
+                        to_remove.push(i);  // save for removal later
+
+                        // calculate split fraction
+                        var frac = fractions[Math.floor(Math.random() * fractions.length)];
+                        var x = rectangles[i]['x'];
+                        var y = rectangles[i]['y'];
+
+                        // decide whether to cut vertically or horizontally
+                        if(Math.random() > 0.5) {
+                            var width = rectangles[i]['width'] * frac;
+                            var height = rectangles[i]['height'];
+                            rectangles.push({"x": x + width, "y": y, "width": rectangles[i]['width'] - width, height});
+                        }
+                        else {
+                            var width = rectangles[i]['width'];
+                            var height = rectangles[i]['height'] * frac;
+                            rectangles.push({"x": x, "y": y + height, "width": width, "height": rectangles[i]['height'] - height});
+                        }
+
+                        rectangles.push({"x": x, "y": y, "width": width, "height": height});
+                    }
+
+                }
+
+                // remove old rectangles (loop in reverse order to avoid messing up indexing)
+                for(var i=to_remove.length-1; i>=0; i--){
+                    rectangles.splice(to_remove[i], 1);
+                }
+
+            }
+
+            for(i=0; i < rectangles.length; i++){
+
+                var condition = Math.random()
+                colourIndex = colour_cum_prob.findIndex( function(elem) {return elem > condition} );
+
+                rectangleColourArray.push(colours[colourIndex]);
+
+                svg.append("rect")
+                    .attr("x", rectangles[i]['x'] )
+                    .attr("y", rectangles[i]['y'] )
+                    .attr("width", rectangles[i]['width'] )
+                    .attr("height", rectangles[i]['height'] )
+                    .attr("fill", colours[colourIndex])
+                    .attr("stroke-width", strokeWidth)
+                    .attr("stroke", "black");
+            }
+
+            var numRectangles = rectangles.length;
+
+            var mondrianFrequencyData = new Uint8Array(numRectangles);
+            var previousFrequencyArray = new Uint8Array(numRectangles);
+
+            analyser.smoothingTimeConstant = 0.80;
+            
+            // Continuously loop and update chart with frequency data.
+            function renderMondrianChart() {
+                // Copy frequency data to frequencyData array.
+            
+                analyser.getByteFrequencyData(mondrianFrequencyData);
+
+                requestAnimationFrame(renderMondrianChart);
+
+                
+                svg.selectAll('rect')
+                    .data(mondrianFrequencyData)
+                    .attr('fill',function(d,i){
+                        
+                        if((mondrianFrequencyData[i] - previousFrequencyArray[i]) > changeTolerance){
+                            var condition = Math.random()
+                            colourIndex = colour_cum_prob.findIndex( function(elem) {return elem > condition} );
+                            
+                            rectangleColourArray[i] = colours[colourIndex];
+                            
+                            return colours[colourIndex];
+
+                        } else{
+                            return rectangleColourArray[i];
+
+                        }
+                        
+                    });
+
+                previousFrequencyArray = mondrianFrequencyData.slice();
+
+            }
+
+            // Run the loop
+            renderMondrianChart();
+            
+        }
+
 
 
     } else{
