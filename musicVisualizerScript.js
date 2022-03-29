@@ -2425,14 +2425,14 @@ function runVisualization() {
             colour_prob.reduce(function(a,b,i) { return colour_cum_prob[i] = a+b; },0);
         
             var fractions = [1/5, 2/5, 3/5, 4/5]  // hard coded split fractions
-            var tol = 100;  // height/width tolerance on which to split
-            var recurs = 8;  // level of recursion
+            var tol = 80;  // height/width tolerance on which to split
+            var recurs = 9;  // level of recursion
 
             var rectangleColourArray = [];
 
             var strokeWidth = 5;
 
-            var changeTolerance = 28; //change in audio frequency at which to change colour
+            var changeTolerance = 18; //change in audio frequency at which to change colour
 
             
             if(svgWidth < 500){
@@ -2511,17 +2511,16 @@ function runVisualization() {
             var mondrianFrequencyData = new Uint8Array(numRectangles);
             var previousFrequencyArray = new Uint8Array(numRectangles);
 
-            analyser.smoothingTimeConstant = 0.80;
+            analyser.smoothingTimeConstant = 0.90;
             
             // Continuously loop and update chart with frequency data.
             function renderMondrianChart() {
+                
                 // Copy frequency data to frequencyData array.
-            
                 analyser.getByteFrequencyData(mondrianFrequencyData);
 
                 requestAnimationFrame(renderMondrianChart);
 
-                
                 svg.selectAll('rect')
                     .data(mondrianFrequencyData)
                     .attr('fill',function(d,i){
