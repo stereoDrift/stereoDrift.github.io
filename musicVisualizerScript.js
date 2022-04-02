@@ -2534,11 +2534,13 @@ function runVisualization() {
             var numPolygons = 75;
             var pointArray = [];
 
-            var strokeWidth = 6;
+            var strokeWidth = 5;
 
-            var opacityThreshold = 120;
-            var opacityExponent = 2;
-            var minOpacity = 0.3;
+            var opacityThreshold = 150;
+            var opacityExponent = 0.95;
+            var minOpacity = 0.0;
+
+            analyser.smoothingTimeConstant = 0.96;
 
             //set max range of colours, based on discussion from screen center
             var hueRange = 50;
@@ -2579,7 +2581,7 @@ function runVisualization() {
             
             var cell = circle.append("path")
                 .data(pointArray.map((d,i) => voronoi.renderCell(i)) )
-                .attr("stroke", strokeColour)
+                .attr("stroke", backgroundColour)
               .attr("stroke-width", strokeWidth)
               .attr("d", d => d)
               .attr("id", function(d, i) { return "cell-" + i; })
@@ -2595,7 +2597,6 @@ function runVisualization() {
 
             var voronoiFrequencyData = new Uint8Array(numPolygons);
 
-            analyser.smoothingTimeConstant = 0.92;
             
             // Continuously loop and update chart with frequency data.
             function renderVoronoiChart() {
