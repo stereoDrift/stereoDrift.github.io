@@ -2280,8 +2280,6 @@ function runVisualization() {
 
             var loopFrequencyData = new Uint8Array(numCirclesTotal);
 
-            //evenly distribute the circles along the circle path at the first draw?
-
             //create and place shapes
             
             for(var i=0; i<numCircles1; i++){
@@ -2325,26 +2323,6 @@ function runVisualization() {
                     });
 
             }
-            
-
-            /*
-            var circles1 = svg.selectAll('circle')
-                .data(loopFrequencyData)
-                .enter()
-                .append('circle')
-                .attr('class',"circle1")
-                .attr("fill",fillColour)
-                .attr('r', minCircleRadius)
-                .attr('stroke',strokeColour)
-                .attr('stroke-width', strokeWidth)
-                .attr('fill-opacity', opacity)
-                .attr('cx', function(d,i){
-                    return svgWidth/2 + pathRadius * Math.cos(i+1);
-                })
-                .attr('cy', function(d,i){
-                    return svgHeight/2 + pathRadius * Math.sin(i+1);
-                });
-            */
  
             analyser.smoothingTimeConstant = 0.90;
             
@@ -2547,6 +2525,97 @@ function runVisualization() {
             // Run the loop
             renderMondrianChart();
             
+        }
+
+        else if(visualizationChoice == "voronoi"){
+
+            console.log("run voronoi visual");
+
+            var numPolygons = 75;
+            var pointArray = [];
+
+            var strokeWidth = 6;
+
+            var opacityThreshold = 120;
+            var opacityExponent = 2;
+            var minOpacity = 0.3;
+
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 50;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
+
+    
+            if(svgWidth < 500){
+                numPolygons = 50
+                strokeWidth = 3;
+            }
+
+            for(var i=0; i<numPolygons; i++){
+                var xVal = Math.random() * svgWidth;
+                var yVal = Math.random() * svgHeight;
+
+                pointArray.push({x: xVal, y: yVal});
+
+            }
+
+
+
+
+            const delaunay = d3.Delaunay.from(pointArray, d => d.x, d => d.y )
+            const voronoi = delaunay.voronoi([0.5, 0.5, svgWidth - 0.5, svgHeight - 0.5])
+            // um what is this part?
+            const renderCell = (d) => {
+                return d == null ? null : "M" + d.join("L") + "Z";
+            }
+            
+            var circle = svg.selectAll("g")
+              .data(pointArray)
+              .enter().append("g");
+            
+            var cell = circle.append("path")
+                .data(pointArray.map((d,i) => voronoi.renderCell(i)) )
+                .attr("stroke", strokeColour)
+              .attr("stroke-width", strokeWidth)
+              .attr("d", d => d)
+              .attr("id", function(d, i) { return "cell-" + i; })
+              .attr("fill", function(d,i){
+                  var hueValue = Math.random() * hueRange;
+                  var saturationValue = Math.random()*0.3 + 0.5;
+                  var lightnessValue = Math.random()*0.3 + 0.5;
+
+                  return d3.hsl(hueValue, saturationValue, lightnessValue);
+              })
+              .attr("fill-opacity", 0);
+            
+
+            var voronoiFrequencyData = new Uint8Array(numPolygons);
+
+            analyser.smoothingTimeConstant = 0.92;
+            
+            // Continuously loop and update chart with frequency data.
+            function renderVoronoiChart() {
+                
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(voronoiFrequencyData);
+
+                requestAnimationFrame(renderVoronoiChart);
+
+                cell
+                    .data(voronoiFrequencyData)
+                    .attr("fill-opacity", function(d,i){
+                        return Math.max(minOpacity, Math.pow(Math.max(0,d-opacityThreshold), opacityExponent) / Math.pow(200-opacityThreshold, opacityExponent) );
+                    });
+
+            }
+
+            // Run the loop
+            renderVoronoiChart();
+
         }
 
 
