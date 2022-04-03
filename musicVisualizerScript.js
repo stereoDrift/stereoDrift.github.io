@@ -1323,7 +1323,7 @@ function runVisualization() {
                             return d3.hsl(hueScale(d), 0.75, 0.50);
                         }
                     })
-                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-100)/50)+minStrokeWidth)})
+                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-85)/50)+minStrokeWidth)})
                     .attr("fill-opacity",function(d) {
                         return Math.min(Math.max(0, Math.pow(Math.max(0,d-frequencyThreshold),exponent)/(Math.pow(140,exponent-1)/ divisor)),1)*maxOpacity;
                     });
