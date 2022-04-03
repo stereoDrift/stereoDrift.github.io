@@ -69,7 +69,7 @@ var demoTrackDiv = document.getElementById("demoTrackDiv");
 var uploadTrackDiv = document.getElementById("uploadTrackDiv");
 
 var initialVolumeMultiplier = 0.80;
-var microphoneVolumeMultiplier = 0.92;
+var microphoneVolumeMultiplier = 1.05;
 var volumeMultiplier = initialVolumeMultiplier;
 
 var toggleMenuButton = document.getElementById("toggleMenuButton");
@@ -1889,7 +1889,7 @@ function runVisualization() {
                     .data(grid2FrequencyData)
                     .attr("stroke-width", function(d,i){
 
-                        return Math.max(0, d/5.8 - 21);
+                        return Math.max(0, (d-155)/3 );
                         
                     });
 
