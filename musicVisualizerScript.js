@@ -1270,16 +1270,17 @@ function runVisualization() {
     
             console.log("numCellHeight: "+numCellHeight+", cellHeight: "+cellHeight+", "+" svgHeight: "+svgHeight);
     
-            var maxOpacity = 0.7;
+            var maxOpacity = 1;
             var minStrokeWidth = 0.0;
     
-            var exponent = 10;
-            var divisor = 4;
+            var exponent = 7;
+            var divisor = 2;
+            var frequencyThreshold = 65;
     
             var gridFrequencyData = new Uint8Array(numCells);
     
             //set max range of colours, based on frequency input 
-            var hueRange = 80;
+            var hueRange = 170;
             var hueStart = fillHue - hueRange/2;
             var hueEnd = fillHue + hueRange/2;
     
@@ -1319,12 +1320,12 @@ function runVisualization() {
                         if(colourChoice == "Noir"){
                             return "white";
                         } else {
-                            return d3.hsl(hueScale(d), 0.6, 0.6);
+                            return d3.hsl(hueScale(d), 0.75, 0.50);
                         }
                     })
-                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-100)/70)+minStrokeWidth)})
+                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-100)/50)+minStrokeWidth)})
                     .attr("fill-opacity",function(d) {
-                        return Math.min(Math.max(0, Math.pow(d-50,exponent)/(Math.pow(140,exponent-1)/ divisor)),1)*maxOpacity;
+                        return Math.min(Math.max(0, Math.pow(Math.max(0,d-frequencyThreshold),exponent)/(Math.pow(140,exponent-1)/ divisor)),1)*maxOpacity;
                     });
     
             }
