@@ -1875,7 +1875,7 @@ function runVisualization() {
                     return svgHeight - (Math.floor(i / numCols) * verticalLength + verticalLength);
                 });
 
-            analyser.smoothingTimeConstant = 0.88;
+            analyser.smoothingTimeConstant = 0.91;
 
             
             // Continuously loop and update chart with frequency data.
