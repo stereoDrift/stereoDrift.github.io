@@ -85,6 +85,8 @@ var infoMenuTable = document.getElementById("infoMenuTable");
 
 var isAudioPlaying = false;
 
+var intervals = [];
+
 //Visualization Inputs
 var barPadding = 1;
 var numBars = 400;
@@ -411,6 +413,8 @@ function refresh(){
     for(i=0; i<50000; i++){
         window.cancelAnimationFrame(i);
     }
+
+    intervals.forEach(clearInterval);
     
     //d3.selectAll('*').transition();
     svg.selectAll('*').remove();
@@ -1967,7 +1971,7 @@ function runVisualization() {
                 svg.append("path")
                     .attr("d", singleArc)
                     .attr("class","arc")
-                    .attr("fill", d3.hsl(hueValue, saturationValue, lightnessValue))
+                    .attr("fill", d3.hsl(hueScale(hueValue), saturationValue, lightnessValue))
                     .attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")");
 
                 arcGroup.push(singleArc);
@@ -2591,7 +2595,7 @@ function runVisualization() {
                   var saturationValue = Math.random()*0.3 + 0.5;
                   var lightnessValue = Math.random()*0.3 + 0.5;
 
-                  return d3.hsl(hueValue, saturationValue, lightnessValue);
+                  return d3.hsl(hueScale(hueValue), saturationValue, lightnessValue);
               })
               .attr("fill-opacity", 0);
             
@@ -2617,6 +2621,202 @@ function runVisualization() {
 
             // Run the loop
             renderVoronoiChart();
+
+        }
+
+        else if(visualizationChoice == "contour"){
+
+            console.log("run contour visual");
+
+            var numPoints = 50;
+            var pointArray = [];
+            var xValArray = [];
+            var yValArray = [];
+            var fillOpacity = 1;
+            var bandwidth = 39;
+            var heightShift = 0.3;
+            var maxHeightShift = svgHeight * heightShift;
+            var heightExponent = 2;
+
+            var updateFrequency = 1000/24; //delay in milliseconds to update contour chart
+
+            analyser.smoothingTimeConstant = 0.90;
+
+            //set max range of colours
+            var hueRange = 200;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+
+            var hueScale = d3.scaleLinear()
+                .domain([0, 255])
+                .range([hueStart, hueEnd]);
+
+            for(var i=0; i<numPoints; i++){
+                
+                //var xVal = svgWidth * Math.random();
+                var xVal = i / numPoints * svgWidth;
+                xValArray.push(xVal);
+
+                var yVal = Math.random() * svgHeight * (1-heightShift);
+                yValArray.push(yVal);
+
+                pointArray.push({"x": xVal, "y": yVal});
+
+            }
+
+            console.log(pointArray);
+
+            const thresholds = 5;
+
+            // compute the density data
+            var contourFunc = d3.contourDensity()
+                .thresholds(thresholds)
+                .x(function(d) { return (d.x); })   // x and y = column name in .csv input data
+                .y(function(d) { return (svgHeight - d.y); })
+                .size([svgWidth, svgHeight])
+                .bandwidth(bandwidth);    // smaller = more precision in lines = more lines
+            
+            /*
+            var contours = contourFunc(pointArray);
+
+            // Add the contour: several "path"
+            svg
+                .selectAll("path")
+                .data(contours)
+                .enter()
+                .append("path")
+                    .attr("d", d3.geoPath())
+                    .attr("fill", fillColour)
+                    .attr("fill-opacity", fillOpacity)
+                    .attr("stroke", strokeColour)
+                    .attr("stroke-linejoin", "round")
+            */
+
+            var contourFrequencyData = new Uint8Array(numPoints);
+
+            function updateContourData(){
+                pointArray = [];
+                
+                analyser.getByteFrequencyData(contourFrequencyData);
+
+                for(var i=0; i<numPoints; i++){
+                
+                    
+                    var xVal = xValArray[i];    
+                    var yVal = yValArray[i] + (Math.pow(contourFrequencyData[i],heightExponent) / Math.pow(245,heightExponent) * maxHeightShift);
+                    
+                    /*
+                    var xVal = svgWidth * Math.random();
+                    var yVal = Math.random() * svgHeight;
+                    */
+
+                    pointArray.push({"x": xVal, "y": yVal});
+    
+                }
+
+                //console.log(pointArray);
+
+            }
+
+            function updateContourChart(){
+                
+                svg.selectAll('*').remove();
+
+                var contours = contourFunc(pointArray);
+                
+                var contourPaths = svg.selectAll("path");
+      
+                contourPaths
+                    .data(contours)
+                    .enter()
+                    .append("path")
+                        .attr("d", d3.geoPath())
+                        .attr("fill",function(d,i){
+                        
+                            var frequencyValue = contourFrequencyData[i];
+    
+                            if(frequencyValue > 0){
+                                var hueValue = hueScale(contourFrequencyData[i] - 0);
+                            } else {
+                                var hueValue = fillHue;
+                            }
+                            
+                            return d3.hsl(hueValue, 0.3, 0.50);
+                        })
+                        .attr("fill-opacity", fillOpacity)
+                        .attr("stroke", strokeColour)
+                        .attr("stroke-linejoin", "round");
+                
+
+            }
+
+            var intervalCall = setInterval(function() {
+                updateContourData();
+                updateContourChart();
+            }, updateFrequency);
+
+            intervals.push(intervalCall);
+
+            
+            /*
+
+            // Continuously loop and update chart with frequency data.
+            function renderContourChart() {
+                
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(contourFrequencyData);
+
+                requestAnimationFrame(renderContourChart);
+
+
+                svg.selectAll("path") 
+                    .attr("fill",function(d,i){
+                        
+                        var frequencyValue = contourFrequencyData[i];
+
+                        if(frequencyValue > 0){
+                            var hueValue = hueScale(contourFrequencyData[i] - 0);
+                        } else {
+                            var hueValue = fillHue;
+                        }
+                        
+                        return d3.hsl(hueValue, 0.3, 0.50);
+                    });
+
+                    
+                    .attr("fill-opacity", function(d,i){
+                        return Math.max(0, (contourFrequencyData[i]-150) / 255);
+                    });
+
+
+                // compute the density data
+                densityData = d3.contourDensity()
+                    .x(function(d,i) { return xValArray[i]; })   // x and y = column name in .csv input data
+                    .y(function(d,i) { return svgHeight - ( yValArray[i] ); })
+                    .size([svgWidth, svgHeight])
+                    .bandwidth(bandwidth)    // smaller = more precision in lines = more lines
+                    (pointArray)
+
+                // Add the contour: several "path"
+                svg
+                    .selectAll("path")
+                    .data(densityData)
+                        .attr("d", d3.geoPath())
+                        .attr("fill", fillColour)
+                        .attr("fill-opacity", function(d,i){
+                            return contourFrequencyData[i]/255;
+                        })
+                        .attr("stroke", strokeColour)
+                        .attr("stroke-linejoin", "round")
+
+        
+            }
+
+            // Run the loop
+            renderContourChart();
+
+            */
+
 
         }
 
