@@ -2624,9 +2624,9 @@ function runVisualization() {
 
         }
 
-        else if(visualizationChoice == "contour"){
+        else if(visualizationChoice == "friedEggs"){
 
-            console.log("run contour visual");
+            console.log("run fried eggs visual");
 
             var numPoints = 50;
             var pointArray = [];
