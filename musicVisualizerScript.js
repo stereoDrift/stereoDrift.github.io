@@ -2624,16 +2624,16 @@ function runVisualization() {
 
         }
 
-        else if(visualizationChoice == "friedEggs"){
+        else if(visualizationChoice == "lavaLamp"){
 
-            console.log("run fried eggs visual");
+            console.log("run lava lamp visual");
 
             var numPoints = 50;
             var pointArray = [];
             var xValArray = [];
             var yValArray = [];
             var fillOpacity = 1;
-            var bandwidth = (39 * svgWidth/1000 - 39)/3 + 39;
+            var bandwidth = (39 * svgWidth/1000 - 39)/4 + 39;
             var heightShift = 0.3;
             var maxHeightShift = svgHeight * heightShift;
             var heightExponent = 2;
