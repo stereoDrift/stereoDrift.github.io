@@ -2676,22 +2676,6 @@ function runVisualization() {
                 .size([svgWidth, svgHeight])
                 .bandwidth(bandwidth);    // smaller = more precision in lines = more lines
             
-            /*
-            var contours = contourFunc(pointArray);
-
-            // Add the contour: several "path"
-            svg
-                .selectAll("path")
-                .data(contours)
-                .enter()
-                .append("path")
-                    .attr("d", d3.geoPath())
-                    .attr("fill", fillColour)
-                    .attr("fill-opacity", fillOpacity)
-                    .attr("stroke", strokeColour)
-                    .attr("stroke-linejoin", "round")
-            */
-
             var contourFrequencyData = new Uint8Array(numPoints);
 
             function updateContourData(){
@@ -2704,17 +2688,11 @@ function runVisualization() {
                     
                     var xVal = xValArray[i];    
                     var yVal = yValArray[i] + (Math.pow(contourFrequencyData[i],heightExponent) / Math.pow(245,heightExponent) * maxHeightShift);
-                    
-                    /*
-                    var xVal = svgWidth * Math.random();
-                    var yVal = Math.random() * svgHeight;
-                    */
 
                     pointArray.push({"x": xVal, "y": yVal});
     
                 }
 
-                //console.log(pointArray);
 
             }
 
@@ -2757,69 +2735,275 @@ function runVisualization() {
 
             intervals.push(intervalCall);
 
-            
-            /*
+        }
 
+        else if(visualizationChoice == "grid3"){
+
+            console.log("run grid3 visual");
+
+            analyser.smoothingTimeConstant = 0.90;
+
+            var numRows = 10;
+            var numCols = 10;
+            var numCells = numRows * numCols;
+            var numCellsRemaining = numCells;
+
+            var cellWidth = svgWidth / numCols;
+            var cellHeight = svgHeight / numRows;
+
+            var minWidth = Math.min(cellWidth, cellHeight) / 2;
+            var minHeight = Math.min(cellWidth, cellHeight) / 2;
+
+            var cellPositionArray = [];
+
+            var sizeSensitivity = 1;
+
+            var fillThreshold = 215;
+            var strokeThreshold = 125;
+
+            //create array of all possible cell positions
+            for(var i=0; i<numCells; i++){
+                
+                var colVal = i%numCols;
+                var rowVal = Math.floor(i/numRows);
+                
+                cellPositionArray.push({"row": rowVal, "col": colVal});
+            }
+
+            console.log(cellPositionArray);
+
+            //draw rectangle in a random position, and remove that position afterwards
+
+            for(var i=0; i<numCells; i++){
+                var currentPosition = Math.floor(Math.random() * numCellsRemaining)
+                numCellsRemaining--;
+
+                var colVal = cellPositionArray[currentPosition].col;
+                var rowVal = cellPositionArray[currentPosition].row;
+
+                cellPositionArray.splice(currentPosition,1);
+
+                svg
+                    .append("rect")
+                    .attr("x",colVal/numCols*svgWidth + cellWidth/4)
+                    .attr("y",rowVal/numRows*svgHeight + cellHeight/4)
+                    .attr("width",minWidth)
+                    .attr("height",minHeight)
+                    .attr("fill",fillColour)
+                    .attr("stroke",strokeColour)
+                    .attr("stroke-width",3);
+
+            }
+
+            var grid3FrequencyData = new Uint8Array(numCells);
+
+            
             // Continuously loop and update chart with frequency data.
-            function renderContourChart() {
+            function renderGrid3Chart() {
                 
                 // Copy frequency data to frequencyData array.
-                analyser.getByteFrequencyData(contourFrequencyData);
+                analyser.getByteFrequencyData(grid3FrequencyData);
 
-                requestAnimationFrame(renderContourChart);
+                var t = performance.now();
 
+                requestAnimationFrame(renderGrid3Chart);
 
-                svg.selectAll("path") 
-                    .attr("fill",function(d,i){
-                        
-                        var frequencyValue = contourFrequencyData[i];
-
-                        if(frequencyValue > 0){
-                            var hueValue = hueScale(contourFrequencyData[i] - 0);
-                        } else {
-                            var hueValue = fillHue;
-                        }
-                        
-                        return d3.hsl(hueValue, 0.3, 0.50);
-                    });
-
-                    
+                svg.selectAll("rect")
+                    .data(grid3FrequencyData)
                     .attr("fill-opacity", function(d,i){
-                        return Math.max(0, (contourFrequencyData[i]-150) / 255);
-                    });
+                        
+                        /*
+                        if(d > fillThreshold){
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                        */
+                        
+                        return Math.max(0, (d-fillThreshold)*2 / (255-fillThreshold));
+                    })
+                    .attr("stroke-opacity", function(d,i){
+                        return Math.max(0, (d-strokeThreshold) / (255-strokeThreshold));
+                    })
+                    .attr("transform","rotate("+t/100+")");
 
-
-                // compute the density data
-                densityData = d3.contourDensity()
-                    .x(function(d,i) { return xValArray[i]; })   // x and y = column name in .csv input data
-                    .y(function(d,i) { return svgHeight - ( yValArray[i] ); })
-                    .size([svgWidth, svgHeight])
-                    .bandwidth(bandwidth)    // smaller = more precision in lines = more lines
-                    (pointArray)
-
-                // Add the contour: several "path"
-                svg
-                    .selectAll("path")
-                    .data(densityData)
-                        .attr("d", d3.geoPath())
-                        .attr("fill", fillColour)
-                        .attr("fill-opacity", function(d,i){
-                            return contourFrequencyData[i]/255;
-                        })
-                        .attr("stroke", strokeColour)
-                        .attr("stroke-linejoin", "round")
-
-        
             }
 
             // Run the loop
-            renderContourChart();
-
-            */
-
+            renderGrid3Chart();
 
         }
 
+        else if(visualizationChoice == "splatter"){
+
+            console.log("run splatter visual");
+
+            var frequencyThreshold = 125;
+            var frequencyChangeThreshold = 18;
+            
+            var backgroundColourProbability = 0.4;
+            var squareNoFillProbability = 0.5;
+
+            var circleProbability = 0.25;
+            var squareProbability = 0.35;
+
+            var updateFrequency = 1000/24; //delay in milliseconds to update chart
+
+            analyser.smoothingTimeConstant = 0.80;
+
+            var maxLinePoints = 8;
+            var maxStrokeWidth = 4;
+
+            var maxSquareWidth = svgWidth * 0.05;
+
+            var numDataPoints = 8;
+            var splatterFrequencyData = new Uint8Array(numDataPoints);
+            var previousFrequencyData = new Uint8Array(numDataPoints);
+
+            //set max range of colours
+            var hueRange = 75;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+
+            var hueScale = d3.scaleLinear()
+                .domain([0, 255])
+                .range([hueStart, hueEnd]);
+
+
+            function drawShape(){
+                analyser.getByteFrequencyData(splatterFrequencyData);
+
+                for(var i=0; i<numDataPoints; i++){
+
+
+                    if(splatterFrequencyData[i] - previousFrequencyData[i] > frequencyChangeThreshold){
+
+                        var shapeValue = Math.random();
+
+                        var hueValue = hueScale(splatterFrequencyData[i]);
+                        var saturationValue = Math.random() * 0.3 + 0.5;
+                        var lightnessValue = Math.random() * 0.3 + 0.5;
+
+                        if(shapeValue < circleProbability){
+                            //draw circle
+                            svg
+                                .append("circle")
+                                .attr("r", Math.pow( Math.max(0,(splatterFrequencyData[i] - frequencyThreshold))/25, 3.0 ) )
+                                .attr("fill",function(d,i){
+                                    var randomNumber = Math.random();
+
+                                    if(randomNumber < backgroundColourProbability){
+                                        return backgroundColour;
+                                    } else{
+                                        return d3.hsl(hueValue, saturationValue, lightnessValue);
+                                    }
+                                })
+                                .attr("fill-opacity", 1)
+                                .attr("cx", Math.random() * svgWidth)
+                                .attr("cy", Math.random() * svgHeight)
+                        }
+
+                        else if(shapeValue < (circleProbability + squareProbability)){
+                            //draw square
+
+                            var xVal = Math.random() * svgWidth;
+                            var yVal = Math.random() * svgHeight;
+                            var width = Math.random() * maxSquareWidth;
+                            var height = width;
+                            var rotationAngle = Math.random() * 360;
+
+                            svg
+                                .append("rect")
+                                .attr("x", xVal)
+                                .attr("y",yVal)
+                                .attr("width",width)
+                                .attr("height",height)
+                                .attr("transform", "rotate("+rotationAngle+","+xVal+","+yVal+")")
+                                .attr("fill",function(d,i){
+                                    var randomNumber = Math.random();
+
+                                    if(randomNumber < squareNoFillProbability){
+                                        return "none";
+                                    } else{
+                                        return d3.hsl(hueValue, saturationValue, lightnessValue);
+                                    }
+                                })
+                                .attr("stroke",function(d,i){
+                                    var strokeHueValue = hueScale(Math.random()*255);
+                                    return d3.hsl(strokeHueValue, saturationValue, lightnessValue);
+                                })
+                                .attr("stroke-width", Math.random()*maxStrokeWidth)
+
+
+                        }
+                        
+                        else {
+
+                            //draw curved line path
+
+                            var numPoints = Math.floor(maxLinePoints * Math.random());
+                            var points = [];
+
+                            var lineFunction = d3.line()
+                                .x(function(d) { return d.x; })
+                                .y(function(d) { return d.y; })
+                                .curve(d3.curveNatural)
+
+                            var lineCenterX = svgWidth * Math.random();
+                            var lineCenterY = svgHeight * Math.random();
+
+                            var maxShiftX = svgWidth * 0.5 * Math.random();
+                            var maxShiftY = svgWidth * 0.5 * Math.random();
+
+                            for(var i=0; i<numPoints; i++){
+                                
+                                var xShift = (Math.random()*2 - 1) * maxShiftX;
+                                var yShift = (Math.random()*2 - 1) * maxShiftY;
+
+                                var xVal = lineCenterX + xShift;
+                                var yVal = lineCenterY + yShift;
+
+                                points.push({"x": xVal, "y": yVal});
+                            }
+
+                            svg
+                                .append('path')
+                                .datum(points)
+                                .attr('d', lineFunction)
+                                .attr('stroke', function(d,i){
+                                    var randomNumber = Math.random();
+
+                                    if(randomNumber < backgroundColourProbability){
+                                        return backgroundColour;
+                                    } else{
+                                        return d3.hsl(hueValue, saturationValue, lightnessValue);
+                                    }
+                                })
+                                .attr("stroke-width", Math.random() * maxStrokeWidth)
+                                .attr('fill', 'none');
+
+
+                        }
+
+
+                    }
+
+
+
+                }
+
+                previousFrequencyData = splatterFrequencyData.slice();
+
+
+            }
+
+            var intervalCall = setInterval(function() {
+                drawShape();
+            }, updateFrequency);
+
+            intervals.push(intervalCall);
+
+        }
 
 
     } else{
