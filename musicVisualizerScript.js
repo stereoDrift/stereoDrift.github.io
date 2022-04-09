@@ -108,11 +108,6 @@ var joyPlotN = 360;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
-var numCellWidth = 20;
-var numCellHeight = 16;
-var numCells = numCellHeight * numCellWidth;
-var maxCellStrokeWidth = 4;
-
 var numRings = 10;
 
 var numSpiralCircles = 2000;
@@ -1259,6 +1254,11 @@ function runVisualization() {
     
         else if(visualizationChoice == "grid"){
             console.log("Run grid visualization");
+
+            var numCellWidth = 20;
+            var numCellHeight = 16;
+            var numCells = numCellHeight * numCellWidth;
+            var maxCellStrokeWidth = 4;
     
             analyser.smoothingTimeConstant = 0.96;
     
@@ -1315,6 +1315,8 @@ function runVisualization() {
         
                 // Copy frequency data to array.
                 analyser.getByteFrequencyData(gridFrequencyData);
+
+                console.log(gridFrequencyData);
     
                 requestAnimationFrame(renderGridChart);
     
@@ -1893,7 +1895,7 @@ function runVisualization() {
                     .data(grid2FrequencyData)
                     .attr("stroke-width", function(d,i){
 
-                        return Math.max(0, (d-155)/3 );
+                        return Math.max(0, (d-140)/3 );
                         
                     });
 
@@ -2811,21 +2813,11 @@ function runVisualization() {
                 svg.selectAll("rect")
                     .data(grid3FrequencyData)
                     .attr("fill-opacity", function(d,i){
-                        
-                        /*
-                        if(d > fillThreshold){
-                            return 1;
-                        } else {
-                            return 0;
-                        }
-                        */
-                        
                         return Math.max(0, (d-fillThreshold)*2 / (255-fillThreshold));
                     })
                     .attr("stroke-opacity", function(d,i){
                         return Math.max(0, (d-strokeThreshold) / (255-strokeThreshold));
                     })
-                    .attr("transform","rotate("+t/100+")");
 
             }
 
