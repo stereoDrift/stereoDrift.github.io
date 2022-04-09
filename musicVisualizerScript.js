@@ -2838,8 +2838,8 @@ function runVisualization() {
 
             console.log("run splatter visual");
 
-            var frequencyThreshold = 125;
-            var frequencyChangeThreshold = 18;
+            var frequencyThreshold = 170;
+            var frequencyChangeThreshold = 19;
             
             var backgroundColourProbability = 0.4;
             var squareNoFillProbability = 0.5;
@@ -2847,18 +2847,23 @@ function runVisualization() {
             var circleProbability = 0.25;
             var squareProbability = 0.35;
 
+            var shapeClearThreshold = 170;
+
             var updateFrequency = 1000/24; //delay in milliseconds to update chart
 
             analyser.smoothingTimeConstant = 0.80;
 
             var maxLinePoints = 8;
             var maxStrokeWidth = 4;
+            var maxLineShift = 0.4;
 
             var maxSquareWidth = svgWidth * 0.05;
 
-            var numDataPoints = 8;
+            var numDataPoints = 7;
             var splatterFrequencyData = new Uint8Array(numDataPoints);
             var previousFrequencyData = new Uint8Array(numDataPoints);
+
+            var shapeCounter = 0;
 
             //set max range of colours
             var hueRange = 75;
@@ -2884,11 +2889,47 @@ function runVisualization() {
                         var saturationValue = Math.random() * 0.3 + 0.5;
                         var lightnessValue = Math.random() * 0.3 + 0.5;
 
-                        if(shapeValue < circleProbability){
+                        shapeCounter++;
+
+                        if(shapeCounter % shapeClearThreshold == 0){
+                            //draw a large shape with backgroundColour fill to "clear" the canvas
+                            var randomNumber = Math.random();
+                            
+                            if(randomNumber < 0.5){
+                                
+                                svg
+                                    .append("rect")
+                                    .attr("x", svgWidth*0.1)
+                                    .attr("y",svgHeight*0.1)
+                                    .attr("width",svgWidth * 0.8)
+                                    .attr("height",svgHeight * 0.8)
+                                    .attr("fill",backgroundColour)
+                                    .attr("stroke",fillColour)
+                                    .attr("stroke-width", Math.random() * 20)
+
+                            }
+                            
+                            else {
+                                
+                                svg
+                                    .append("circle")
+                                    .attr("cx", svgWidth/2)
+                                    .attr("cy",svgHeight/2)
+                                    .attr("r",Math.min(svgWidth,svgHeight)/2*0.9)
+                                    .attr("fill",backgroundColour)
+                                    .attr("stroke",fillColour)
+                                    .attr("stroke-width", Math.random() * 20)
+
+                            }
+
+
+                        }
+
+                        else if(shapeValue < circleProbability){
                             //draw circle
                             svg
                                 .append("circle")
-                                .attr("r", Math.pow( Math.max(0,(splatterFrequencyData[i] - frequencyThreshold))/25, 3.0 ) )
+                                .attr("r", Math.pow( Math.max(0,(splatterFrequencyData[i] - frequencyThreshold))/25, 3.2 ) )
                                 .attr("fill",function(d,i){
                                     var randomNumber = Math.random();
 
@@ -2952,8 +2993,8 @@ function runVisualization() {
                             var lineCenterX = svgWidth * Math.random();
                             var lineCenterY = svgHeight * Math.random();
 
-                            var maxShiftX = svgWidth * 0.5 * Math.random();
-                            var maxShiftY = svgWidth * 0.5 * Math.random();
+                            var maxShiftX = svgWidth * maxLineShift * Math.random();
+                            var maxShiftY = svgWidth * maxLineShift * Math.random();
 
                             for(var i=0; i<numPoints; i++){
                                 
