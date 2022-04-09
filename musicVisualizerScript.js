@@ -2839,7 +2839,7 @@ function runVisualization() {
             console.log("run splatter visual");
 
             var frequencyThreshold = 170;
-            var frequencyChangeThreshold = 19;
+            var frequencyChangeThreshold = 20;
             
             var backgroundColourProbability = 0.4;
             var squareNoFillProbability = 0.5;
