@@ -133,11 +133,11 @@ var hillFrequencyData = new Uint8Array(numHill);
 var shapeSizeMultiplier = 1;
 
 //Colour palettes -- background, shape fill, shape outline
-var palette1 = ["#78B7C5", "#EBCC2A", "rgb(59,154,178)"];
+var palette1 = ["#78B7C5", "#EBCC2A", "#3B9AB2"];
 var palette2 = ['#7909c3', "#f72585", "#42c7f0"];
-var palette3 = ["rgb(0,0,0)", "#FFFFFF", "rgb(100,100,100)"];
+var palette3 = ["#000000", "#FFFFFF", "#646464"];
 var palette4 = ["#5B1A18", "#FD6467", "#F1BB7B"];
-var palette5 = ["#2f5575", "#94f0dc", "rgb(255,255,255)"];
+var palette5 = ["#2f5575", "#94f0dc", "#FFFFFF"];
 var palette6 = ["#f1faee", "#e63946", "#a8dadc"];
 var palette7 = ["#e0c3fc", "#4d194d", "#b5179e"];
 var palette8 = ["#652EC7", "#FFD300", "#DE38C8"];
@@ -745,6 +745,16 @@ function runVisualization() {
 
     //get Hue of RGB fill colour (first element of HSL -- Hue, Saturation, Lightness)
     var fillHue = rgbToHsl(fillR, fillG, fillB)[0] * 360;
+
+    //convert background colour HEX into RGB instead
+
+    var backgroundR = parseInt(backgroundColour.substr(1,2), 16); // Grab the hex representation of red (chars 1-2) and convert to decimal (base 10).
+    var backgroundG = parseInt(backgroundColour.substr(3,2), 16);
+    var backgroundB = parseInt(backgroundColour.substr(5,2), 16);
+
+    //get Hue of RGB fill colour (first element of HSL -- Hue, Saturation, Lightness)
+    var backgroundHue = rgbToHsl(backgroundR, backgroundG, backgroundB)[0] * 360;
+
 
     //set background colour
     svgContainerDiv.style.backgroundColor = backgroundColour;
@@ -3035,6 +3045,146 @@ function runVisualization() {
             }, updateFrequency);
 
             intervals.push(intervalCall);
+
+        }
+
+        else if(visualizationChoice == "flubber"){
+
+            console.log("run radial visualization");
+
+            var numDataPoints = 24;
+            var innerRadius = 0;
+            var outerRadius = Math.min(svgWidth, svgHeight)/2 * 0.95;
+            var strokeWidth = 10;
+            var fillOpacity = 1;
+
+            var outerRadius2 = outerRadius * 2/3;
+            var outerRadius3 = outerRadius * 1/3;
+
+            /*
+            var numCircles = 30;
+            var minCircleSize = 20;
+            var maxCircleSize = 50;
+            */
+
+            var fullCircle = 2 * Math.PI * (numDataPoints-1) / numDataPoints;
+
+            analyser.smoothingTimeConstant = 0.9;
+
+            const y = d3.scaleLinear()
+                .range([innerRadius, outerRadius]);
+            
+            const y2 = d3.scaleLinear()
+                .range([innerRadius, outerRadius2]); 
+                
+            const y3 = d3.scaleLinear()
+                .range([innerRadius, outerRadius3]);  
+
+            const x = d3.scaleLinear()
+
+            x.range([0, fullCircle]);
+
+            x.domain([0,numDataPoints]);
+            y.domain([0,255]);
+            y2.domain([0,255]);
+            y3.domain([0,255]);
+
+
+            const line = d3.lineRadial()
+                .angle(function(d,i) { return x(i); })
+                .radius(function(d) { return y(d); })
+                .curve(d3.curveCardinalClosed)
+
+            const line2 = d3.lineRadial()
+                .angle(function(d,i) { return x(i); })
+                .radius(function(d) { return y2(d); })
+                .curve(d3.curveCardinalClosed)
+
+            const line3 = d3.lineRadial()
+                .angle(function(d,i) { return x(i); })
+                .radius(function(d) { return y3(d); })
+                .curve(d3.curveCardinalClosed)
+
+            var radialFrequencyData = new Uint8Array(numDataPoints);
+
+
+            /*
+            //draw random circles in the background to add some texture
+
+            for(var i=0; i<numCircles; i++){
+
+                svg
+                    .append("circle")
+                    .attr("cx",Math.random()*svgWidth)
+                    .attr("cy",Math.random()*svgHeight)
+                    .attr("r",minCircleSize + Math.random() * (maxCircleSize - minCircleSize))
+                    .attr("fill",d3.hsl(backgroundHue,0.7,0.7))
+                    .attr("fill-opacity",0.3);
+
+            }
+            */
+
+            //draw initial radial line plot
+            var linePlot = svg.append("path")
+                .datum(radialFrequencyData)
+                .attr("fill", d3.hsl(fillHue, 0.4, 0.5))
+                .attr("fill-opacity",fillOpacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("transform", "translate(" + svgWidth / 2 + "," + svgHeight / 2 + ")")
+                .attr("d", line);
+
+            var linePlot2 = svg.append("path")
+                .datum(radialFrequencyData)
+                .attr("fill", d3.hsl(fillHue, 0.7, 0.5))
+                .attr("fill-opacity",fillOpacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("transform", "translate(" + svgWidth / 2 + "," + svgHeight / 2 + ")")
+                .attr("d", line2);
+
+            var linePlot3 = svg.append("path")
+                .datum(radialFrequencyData)
+                .attr("fill", d3.hsl(fillHue, 1, 0.5))
+                .attr("fill-opacity",fillOpacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("transform", "translate(" + svgWidth / 2 + "," + svgHeight / 2 + ")")
+                .attr("d", line3);
+
+            
+            // Continuously loop and update chart with frequency data.
+            function renderRadialChart() {
+                
+                var t = performance.now();
+
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(radialFrequencyData);
+
+                requestAnimationFrame(renderRadialChart);
+
+                linePlot
+                    .datum(radialFrequencyData)
+                    .attr("fill", d3.hsl(fillHue + t/450, 0.4, 0.5))
+                    .attr("d", line);
+
+                    
+                linePlot2
+                    .datum(radialFrequencyData)
+                    .attr("fill", d3.hsl(fillHue + t/400, 0.7, 0.5))
+                    .attr("d", line2);
+
+                linePlot3
+                    .datum(radialFrequencyData)
+                    .attr("fill", d3.hsl(fillHue + t/350, 1.0, 0.5))
+                    .attr("d", line3);
+                    
+                    
+
+            }
+
+            // Run the loop
+            renderRadialChart();
 
         }
 
