@@ -3196,8 +3196,8 @@ function runVisualization() {
 
         }
 
-        else if(visualizationChoice == "tile"){
-            console.log("run tile visual");
+        else if(visualizationChoice == "fadeaway"){
+            console.log("run fadeaway visual");
 
             var numCols = 7;
 
@@ -3277,7 +3277,7 @@ function runVisualization() {
                     .attr('d',path1)
                     .attr("transform","rotate(100)")
                     .attr("fill",strokeColour)
-                    .attr("fill-opacity",0.5)
+                    .attr("fill-opacity",(svgHeight-yVal)/svgHeight*0.5+0.2)
                     .attr("transform","translate("+(xVal-tileWidth/2)+","+(yVal+tileWidth/2)+") rotate("+rotationVal+" "+tileWidth/2+" "+tileHeight/2*-1+")")
 
                 //upper right arc, rotated by x degrees
@@ -3285,7 +3285,7 @@ function runVisualization() {
                     .append('path')
                     .attr('d',path2)
                     .attr("fill",strokeColour)
-                    .attr("fill-opacity",0.5)
+                    .attr("fill-opacity",(svgHeight-yVal)/svgHeight*0.5+0.2)
                     .attr("transform","translate("+(xVal+tileWidth/2)+","+(yVal-tileWidth/2)+") rotate("+rotationVal+" "+tileWidth/2*-1+" "+tileHeight/2+")")
 
             }
@@ -3375,13 +3375,13 @@ function runVisualization() {
                         var initialYPosition = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
                         var currentPosition = (initialYPosition + t/50) % (svgHeight + tileHeight);
 
-                        return d3.hsl(fillHue-25 + 50 * (svgHeight-currentPosition)/svgHeight, 0.7, 0.5);
+                        return d3.hsl(fillHue-25 + 50 * (svgHeight-currentPosition)/svgHeight, 0.8, 0.5);
                     })
                     .attr("fill-opacity",function(d,i){
                         var initialYPosition = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
                         var currentPosition = (initialYPosition + t/50) % (svgHeight + tileHeight);
                     
-                        return (svgHeight-currentPosition)/svgHeight;
+                        return (svgHeight-currentPosition)/svgHeight * 0.85 + 0.15;
                     })
 
                     /*
