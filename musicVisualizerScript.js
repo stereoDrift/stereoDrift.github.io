@@ -3345,9 +3345,6 @@ function runVisualization() {
                     .attr("r",function(d,i){
                         return Math.max(0,d-frequencyThreshold)/(255-frequencyThreshold) * (tileWidth/2 - strokeWidth/2) * circleRatio;
                     })
-                    .attr("fill-opacity",function(d,i){
-                        return Math.max(0,d-frequencyThreshold)/(255-frequencyThreshold) + minOpacity;
-                    })
                     .attr("cy",function(d,i){
                         
                         var initialYPosition = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
@@ -3374,6 +3371,24 @@ function runVisualization() {
                         }
                         */
                     })
+                    .attr("fill",function(d,i){
+                        var initialYPosition = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
+                        var currentPosition = (initialYPosition + t/50) % (svgHeight + tileHeight);
+
+                        return d3.hsl(fillHue-25 + 50 * (svgHeight-currentPosition)/svgHeight, 0.7, 0.5);
+                    })
+                    .attr("fill-opacity",function(d,i){
+                        var initialYPosition = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
+                        var currentPosition = (initialYPosition + t/50) % (svgHeight + tileHeight);
+                    
+                        return (svgHeight-currentPosition)/svgHeight;
+                    })
+
+                    /*
+                    .attr("fill-opacity",function(d,i){
+                        return Math.max(0,d-frequencyThreshold)/(255-frequencyThreshold) + minOpacity;
+                    })
+                    */
                     
                     
             }
