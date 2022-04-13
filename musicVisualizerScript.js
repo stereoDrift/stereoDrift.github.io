@@ -95,7 +95,7 @@ var circlesCols = 20;
 var circlesRows = numCircles / circlesCols;
 var circlesBottomMargin = svgHeight * 0.08;
 
-var numDancingCircles = 120;
+var numDancingCircles = 40;
 var dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
 
 var wavesRows = 8;
@@ -104,7 +104,7 @@ var wavesData = d3.range(1, wavesRows);
 
 var wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
 
-var joyPlotN = 360;
+var joyPlotN = 150;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
 
@@ -147,6 +147,7 @@ var palette11 = ["#f6d166", "#287e87", "#df2d2d"];
 var palette12 = ["#1B1663", "#D3FFDD", "#F287BB"];
 var palette13 = ["#1A1831", "#20615B", "#DECE9C"];
 var palette14 = ["#FFFF00", "#0000FF", "#FF0000"]; //primary
+var palette15 = ["#361944", "#86BFE7", "#B09060"]; //euphoria
 
 var backgroundColour;
 var fillColour;
@@ -582,7 +583,9 @@ function clickPauseButton(){
 
     audioElement.pause();
 
-    refresh();
+    setTimeout(function () {
+        refresh();
+    }, 800); //allow animations to finish
 
 }
 
@@ -653,7 +656,7 @@ function runVisualization() {
         circlesRows = numCircles / circlesCols;
         circlesBottomMargin = svgHeight * 0.05;
     
-        numDancingCircles = 60;
+        numDancingCircles = 40;
         dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
     
         wavesRows = 8;
@@ -662,7 +665,7 @@ function runVisualization() {
     
         wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
     
-        joyPlotN = 300;
+        joyPlotN = 105;
         joyPlotRows = 3;
         joyPlotCols = joyPlotN / joyPlotRows;
     
@@ -735,7 +738,12 @@ function runVisualization() {
         backgroundColour = palette14[0];
         fillColour = palette14[1];
         strokeColour = palette14[2];
+    } else if(colourChoice == "Euphoria"){
+        backgroundColour = palette15[0];
+        fillColour = palette15[1];
+        strokeColour = palette15[2];
     }
+
 
     //convert fill colour HEX into RGB instead
 
@@ -957,7 +965,7 @@ function runVisualization() {
                 svg.selectAll("circle")
                     .attr('r', function(d, i) {
                         if(visualizationChoice == "dancingCircles"){
-                            return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.91) - (60*shapeSizeMultiplier) ));
+                            return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.91) - (62*shapeSizeMultiplier) ));
                         } else {
                             return 0;
                         }
@@ -1115,7 +1123,7 @@ function runVisualization() {
         else if(visualizationChoice == "joyPlot"){
             console.log("Run joyPlot visualization");
     
-            analyser.smoothingTimeConstant = 0.92;
+            analyser.smoothingTimeConstant = 0.94;
     
             var frequencyMax = 255;
             var opacity = 1.0;
@@ -1289,7 +1297,7 @@ function runVisualization() {
     
             var exponent = 7;
             var divisor = 2;
-            var frequencyThreshold = 65;
+            var frequencyThreshold = 80;
     
             var gridFrequencyData = new Uint8Array(numCells);
     
@@ -1336,10 +1344,10 @@ function runVisualization() {
                         if(colourChoice == "Noir"){
                             return "white";
                         } else {
-                            return d3.hsl(hueScale(d), 0.75, 0.50);
+                            return d3.hsl(hueScale(d), 0.70, 0.50);
                         }
                     })
-                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-85)/50)+minStrokeWidth)})
+                    .attr("stroke-width",function(d){return Math.min(maxCellStrokeWidth, Math.max(0,(d-95)/50)+minStrokeWidth)})
                     .attr("fill-opacity",function(d) {
                         return Math.min(Math.max(0, Math.pow(Math.max(0,d-frequencyThreshold),exponent)/(Math.pow(140,exponent-1)/ divisor)),1)*maxOpacity;
                     });
@@ -3185,6 +3193,193 @@ function runVisualization() {
 
             // Run the loop
             renderRadialChart();
+
+        }
+
+        else if(visualizationChoice == "tile"){
+            console.log("run tile visual");
+
+            var numCols = 7;
+
+            var tileWidth = svgWidth/numCols;
+            var tileHeight = tileWidth;
+
+            var numRows = Math.ceil(svgHeight/tileHeight);
+
+            var strokeWidth = 12;
+
+            var numTiles = numCols * numRows;
+            console.log("numTiles: "+numTiles);
+
+            var numIntersections = (numCols+1) * (numRows);
+            console.log("numIntersections: "+numIntersections);
+
+            var tileCenterXArray = [];
+            var tileCenterYArray = [];
+
+            var circleRatio = 0.85;
+
+            if(svgWidth > 1200){
+                circleRatio = 0.5;
+            }
+
+            var frequencyThreshold = 140;
+
+            var minOpacity = 0.3;
+
+            analyser.smoothingTimeConstant = 0.92;
+
+            var tileFrequencyData = new Uint8Array(numIntersections);
+
+            //arc generator
+            var arcGenerator = d3.arc();
+
+            var path1 = arcGenerator({
+                startAngle: 0,
+                endAngle: 0.5 * Math.PI,
+                innerRadius: tileWidth/2 - strokeWidth/2,
+                outerRadius: tileWidth/2 + strokeWidth/2,
+            });
+
+            var path2 = arcGenerator({
+                startAngle: 1 * Math.PI,
+                endAngle: 1.5 * Math.PI,
+                innerRadius: tileWidth/2 - strokeWidth/2,
+                outerRadius: tileWidth/2 + strokeWidth/2,
+            });
+
+            //draw tiles / draw dot at the center of each tile
+            for(var i=0; i<numTiles; i++){
+                
+                var xVal = i % numCols * tileWidth + tileWidth/2;
+                var yVal = svgHeight - (Math.floor(i / numCols) * tileHeight + tileHeight/2);
+
+                tileCenterXArray.push(xVal);
+                tileCenterYArray.push(yVal);
+                
+                /*
+                svg
+                    .append("rect")
+                    .attr("width",tileWidth)
+                    .attr("height",tileHeight)
+                    .attr("x",xVal-tileWidth/2)
+                    .attr("y",yVal-tileHeight/2)
+                    .attr("stroke",strokeColour)
+                    .attr("fill","none")
+                */
+
+                //rotate at 90/180/270/360 degrees
+                var rotationVal = Math.ceil(Math.random()*4)*90;
+
+                //bottom left arc, rotated by x degrees
+                svg
+                    .append('path')
+                    .attr('d',path1)
+                    .attr("transform","rotate(100)")
+                    .attr("fill",strokeColour)
+                    .attr("fill-opacity",0.5)
+                    .attr("transform","translate("+(xVal-tileWidth/2)+","+(yVal+tileWidth/2)+") rotate("+rotationVal+" "+tileWidth/2+" "+tileHeight/2*-1+")")
+
+                //upper right arc, rotated by x degrees
+                svg
+                    .append('path')
+                    .attr('d',path2)
+                    .attr("fill",strokeColour)
+                    .attr("fill-opacity",0.5)
+                    .attr("transform","translate("+(xVal+tileWidth/2)+","+(yVal-tileWidth/2)+") rotate("+rotationVal+" "+tileWidth/2*-1+" "+tileHeight/2+")")
+
+            }
+
+            //draw circle at end tile corner
+            for(var i=0; i<numIntersections; i++){
+                var xVal = i % (numCols+1) * tileWidth;
+                var yVal = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
+
+                svg
+                    .append("circle")
+                    .attr("r",5)
+                    .attr("cx",xVal)
+                    .attr("cy",yVal)
+                    .attr("fill",fillColour)
+
+            }
+
+
+            /*
+            //draw single tile
+            svg
+                .append('path')
+                .attr('d',path1)
+                .attr("fill",fillColour)
+                .attr("transform","translate("+(svgWidth/2-tileWidth/2)+","+(svgHeight/2+tileWidth/2)+")");
+
+            svg
+                .append('path')
+                .attr('d',path2)
+                .attr("fill",fillColour)
+                .attr("transform","translate("+(svgWidth/2+tileWidth/2)+","+(svgHeight/2-tileWidth/2)+")");
+            */
+
+            // Continuously loop and update chart with frequency data.
+            function renderTileChart() {
+                
+                var t = performance.now();
+                
+                /*
+                var direction;
+
+                if(Math.ceil(t / 10100) % 2 == 0){
+                    direction = "up";
+                } else {
+                    direction = "down";
+                }
+                */
+
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(tileFrequencyData);
+
+                requestAnimationFrame(renderTileChart);
+
+                svg.selectAll("circle")
+                    .data(tileFrequencyData)
+                    .attr("r",function(d,i){
+                        return Math.max(0,d-frequencyThreshold)/(255-frequencyThreshold) * (tileWidth/2 - strokeWidth/2) * circleRatio;
+                    })
+                    .attr("fill-opacity",function(d,i){
+                        return Math.max(0,d-frequencyThreshold)/(255-frequencyThreshold) + minOpacity;
+                    })
+                    .attr("cy",function(d,i){
+                        
+                        var initialYPosition = svgHeight - ((Math.floor(i / (numCols+1))) * tileHeight);
+                        
+
+                        //return initialYPosition;
+                        return (initialYPosition + t/50) % (svgHeight + tileHeight);
+
+                        /*
+                        if(direction == "down"){
+                            return (initialYPosition + t/50) % (svgHeight + tileHeight/2);
+                        }
+
+                        else {
+                            return svgHeight - (initialYPosition + t/50) % (svgHeight + tileHeight/2);
+                        }
+                        */
+
+                        /*
+                        if(i % 2 == 0){
+                            return (initialYPosition + t/50) % (svgHeight + tileHeight/2);
+                        } else{
+                            return svgHeight - (initialYPosition + t/50) % (svgHeight + tileHeight/2);
+                        }
+                        */
+                    })
+                    
+                    
+            }
+
+            // Run the loop
+            renderTileChart();
 
         }
 
