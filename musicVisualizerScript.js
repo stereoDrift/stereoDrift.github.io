@@ -145,7 +145,7 @@ var palette9 = ["#B2FAFF", "#FF9472", "#FC6E22"];
 var palette10 = ["#C6FFF1", "#FF36AB", "#6153CC"];
 var palette11 = ["#f6d166", "#287e87", "#df2d2d"];
 var palette12 = ["#1B1663", "#D3FFDD", "#F287BB"];
-var palette13 = ["#1A1831", "#20615B", "#DECE9C"];
+var palette13 = ["#1A1831", "#20615B", "#DECE9C"]; //analog
 var palette14 = ["#FFFF00", "#0000FF", "#FF0000"]; //primary
 var palette15 = ["#361944", "#86BFE7", "#B09060"]; //euphoria
 
@@ -759,6 +759,12 @@ function runVisualization() {
     var backgroundB = parseInt(backgroundColour.substr(5,2), 16);
 
     var backgroundHue = rgbToHsl(backgroundR, backgroundG, backgroundB)[0] * 360;
+
+    var backgroundHSL = d3.hsl(backgroundColour);
+    console.log(backgroundHSL);
+    console.log(backgroundHSL.h);
+
+    var backgroundHexArray = [backgroundHSL.h, backgroundHSL.s, backgroundHSL.l]
 
     var strokeR = parseInt(strokeColour.substr(1,2), 16); // Grab the hex representation of red (chars 1-2) and convert to decimal (base 10).
     var strokeG = parseInt(strokeColour.substr(3,2), 16);
@@ -3705,7 +3711,7 @@ function runVisualization() {
         else if(visualizationChoice == "flow"){
             console.log("run flow visual");
 
-            var cellSize = Math.min(svgHeight, svgWidth) / 100;
+            var cellSize = Math.min(svgHeight, svgWidth) / 200;
             var gridHeight = svgHeight;
             var gridWidth = svgWidth;
             var numCols = Math.ceil(gridWidth / cellSize);
@@ -3721,7 +3727,7 @@ function runVisualization() {
             var fps = 12;
             analyser.smoothingTimeConstant = 0.7;
 
-            var stepLength = cellSize * 1.1;
+            var stepLength = cellSize * 2;
 
             var maxCircleSize = Math.min(svgHeight, svgWidth)/2 * 0.2;
             var sizeExponent = 4;
@@ -3924,6 +3930,77 @@ function runVisualization() {
             
             
         
+
+        }
+
+        else if(visualizationChoice == "tetris"){
+            console.log("run tetris visual");
+
+            //perlin noise heatmap background
+            //source: https://joeiddon.github.io/projects/javascript/perlin
+
+            var GRID_SIZE = 5;
+            var RESOLUTION = 2;
+            var hueRange = 120;
+
+            var pixel_size = Math.ceil(svgWidth / RESOLUTION);
+            var num_pixels = GRID_SIZE / RESOLUTION;
+
+            var pixelCount = 0;
+
+            var frequencyThreshold = 165;
+
+            analyser.smoothingTimeConstant = 0.9;
+
+            //clear the background on refresh
+            perlin.seed();
+
+            //draw heatmap grid
+            for (var y = 0; y < GRID_SIZE; y += num_pixels / GRID_SIZE){
+                for (var x = 0; x < GRID_SIZE; x += num_pixels / GRID_SIZE){
+                    
+                    //var v = (parseInt(perlin.get(x, y))+1) / 2;
+                    var v = parseInt(perlin.get(x, y) * hueRange + fillHue);
+
+                    //console.log(v);
+                    //var currentColour = d3.hsl(v, backgroundHexArray[1], backgroundHexArray[2]);
+                    var currentColour = d3.hsl(v, 0.6, 0.5);
+
+                    svg
+                        .append("rect")
+                        .attr("x",x / GRID_SIZE * svgWidth)
+                        .attr("y",svgHeight - (y / GRID_SIZE * svgWidth))
+                        .attr("width",pixel_size)
+                        .attr("height",pixel_size)
+                        .attr("fill",currentColour)
+                        .attr("fill-opacity",1.0)
+
+                    pixelCount++;
+                }
+            }
+
+            var noiseFrequencyData = new Uint8Array(pixelCount);
+
+            function renderTetrisChart() {
+                
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(noiseFrequencyData);
+
+                requestAnimationFrame(renderTetrisChart);
+
+                svg.selectAll("rect")
+                    .data(noiseFrequencyData)
+                    .attr("fill-opacity",function(d,i){
+                        return Math.max(0, d-frequencyThreshold) / (255-frequencyThreshold);
+                    })
+
+                    
+            }
+
+            // Run the loop
+            renderTetrisChart();
+            
+
 
         }
 
