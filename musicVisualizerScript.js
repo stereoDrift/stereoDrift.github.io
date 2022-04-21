@@ -22,7 +22,7 @@ var mainSvg = document.getElementById("mainSvg");
 var svgHeight = svgContainerDiv.clientHeight;
 var svgWidth = svgContainerDiv.clientWidth;
 
-var grainOpacityValue = 0.04;
+var grainOpacityValue = 0.025;
 
 var grainOptions = {
     animate: false,
@@ -114,10 +114,6 @@ var numSpiralCircles = 2000;
 var activeCircleSpacing = 12;
 var numActiveCircles = Math.floor(numSpiralCircles / activeCircleSpacing);
 
-var numHill = 50;
-var numHorizontalLines = 50;
-var numVerticalLines = numHill;
-
 var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
 var dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
@@ -127,8 +123,6 @@ var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 var ringsFrequencyData = new Uint8Array(numRings);
 var spiralCircleData = new Uint8Array(numSpiralCircles);
 var activeSpiralCircleFrequencyData = new Uint8Array(numActiveCircles);
-var hillFrequencyData = new Uint8Array(numHill);
-
 
 var shapeSizeMultiplier = 1;
 
@@ -148,12 +142,15 @@ var palette12 = ["#1B1663", "#D3FFDD", "#F287BB"];
 var palette13 = ["#1A1831", "#20615B", "#DECE9C"]; //analog
 var palette14 = ["#FFFF00", "#0000FF", "#FF0000"]; //primary
 var palette15 = ["#361944", "#86BFE7", "#B09060"]; //euphoria
+var palette16 = ["#02190C", "#900C3F", "#FF7C60"]; //emerald
+var palette17 = ["#141415", "#9F978D", "#B5C8BA"]; //slate
+
 
 var backgroundColour;
 var fillColour;
 var strokeColour;
 
-console.log("SVG height: "+svgHeight);
+//console.log("SVG height: "+svgHeight);
 console.log("Visualization choice: "+visualizationChoice);
 
 // Keep track of clicked keys
@@ -261,8 +258,8 @@ function setSvgSize(){
         svgContainerDiv.style.height = (window.innerHeight - navMenuHeight - 0)+"px";
         mainSvg.style.height = (window.innerHeight - navMenuHeight - 0)+"px";
         
-        console.log("Window innerHeight: "+window.innerHeight);
-        console.log("navMenuHeight: "+navMenuHeight);
+        //console.log("Window innerHeight: "+window.innerHeight);
+        //console.log("navMenuHeight: "+navMenuHeight);
         console.log("svgContainerDivHeight: "+svgContainerDiv.clientHeight);
         console.log("svgContainerDivWidth: "+svgContainerDiv.clientWidth);
 
@@ -319,8 +316,8 @@ function toggleMenu(){
 
 function toggleGrain(){
     
-    console.log("toggle grain function");
-    console.log(grainArray);
+    //console.log("toggle grain function");
+    //console.log(grainArray);
 
     if(isGrainOn == true){
         grainOptions = {
@@ -679,8 +676,6 @@ function runVisualization() {
         shapeSizeMultiplier = 0.45;
     }
 
-    var maxCircleSize = Math.min(svgWidth * 0.09, svgHeight*0.09);
-
     //select colours based on user input
     if(colourChoice == "Zissou"){
         backgroundColour = palette1[0];
@@ -742,6 +737,14 @@ function runVisualization() {
         backgroundColour = palette15[0];
         fillColour = palette15[1];
         strokeColour = palette15[2];
+    } else if(colourChoice == "Emerald"){
+        backgroundColour = palette16[0];
+        fillColour = palette16[1];
+        strokeColour = palette16[2];
+    } else if(colourChoice == "Slate"){
+        backgroundColour = palette17[0];
+        fillColour = palette17[1];
+        strokeColour = palette17[2];
     }
 
 
@@ -761,8 +764,8 @@ function runVisualization() {
     var backgroundHue = rgbToHsl(backgroundR, backgroundG, backgroundB)[0] * 360;
 
     var backgroundHSL = d3.hsl(backgroundColour);
-    console.log(backgroundHSL);
-    console.log(backgroundHSL.h);
+    //console.log(backgroundHSL);
+    //console.log(backgroundHSL.h);
 
     var backgroundHexArray = [backgroundHSL.h, backgroundHSL.s, backgroundHSL.l]
 
@@ -826,7 +829,8 @@ function runVisualization() {
         else if(visualizationChoice == "circles"){
             console.log("Run circles visualization");
     
-            svg.selectAll("circle").remove();
+            var maxCircleSize = Math.min(svgWidth, svgHeight) * 0.06;
+
             analyser.smoothingTimeConstant = 0.88;
     
             // Create our initial D3 chart.
@@ -895,7 +899,7 @@ function runVisualization() {
             var numDots = numDotsWidth * numDotsHeight;
             var dotsFrequencyData = new Uint8Array(numDots);
 
-            console.log("diameter: "+dotDiameter+", numDotsWidth: "+numDotsWidth+", numDotsHeight: "+numDotsHeight);
+            //console.log("diameter: "+dotDiameter+", numDotsWidth: "+numDotsWidth+", numDotsHeight: "+numDotsHeight);
 
             var minStrokeWidth = 1;
             var minOpacity = 0.3;
@@ -941,11 +945,13 @@ function runVisualization() {
     
         else if(visualizationChoice == "dancingCircles"){
             console.log("Run dancing circles visualization");
+
+            var maxCircleSize = Math.min(svgWidth, svgHeight) * 0.06;
     
             var count = d3.selectAll("circle").size()
-            console.log("# of circles: "+count);
+            //console.log("# of circles: "+count);
     
-            analyser.smoothingTimeConstant = 0.9;
+            analyser.smoothingTimeConstant = 0.92;
     
             svg.selectAll("circle")
                 .data(dancingCirclesData)
@@ -956,7 +962,7 @@ function runVisualization() {
                 .attr("fill-opacity", 0.65);
         
             count = d3.selectAll("circle").size()
-            console.log("# of circles: "+count);
+            //console.log("# of circles: "+count);
     
             // Continuously loop and update chart with frequency data.
             function renderDancingCirclesChart() {
@@ -1590,14 +1596,31 @@ function runVisualization() {
         else if(visualizationChoice == "hills"){
             console.log("Run hill visualization");
     
-            var slope = 0.4;
-    
+            var numHill = 35;
+            var numHorizontalLines = 20;
+            var numVerticalLines = numHill;
+
+            var numStars = 15;
+
+            var starPositionArray = [];
+
+            var numDataPoints = numHill + numStars;
+
+            var starThreshold = 155;
+            var maxStarSize = Math.min(svgWidth,svgHeight) * 0.08;
+            var starRotationSpeed = 100; //higher value gives slow rotation
+
+            var frequencyData = new Uint8Array(numHill + numDataPoints);
+            var hillFrequencyData = new Uint8Array(numHill);
+            var starFrequencyData = new Uint8Array(numStars);
+
             var frequencyMax = 255;
-            var chartHeightMultiplier = 1.35;
+            var chartHeightMultiplier = 1.45;
             var opacity = 1;
             var strokeWidth = 5;
     
             var verticalLineOffset = 20;
+
     
             if(svgWidth < 500){
                 strokeWidth = 2;
@@ -1605,7 +1628,7 @@ function runVisualization() {
             }
     
             var horizontalLineData = new Uint8Array(numHorizontalLines);
-    
+
             analyser.smoothingTimeConstant = 0.95;
     
             //set max range of colours, based on discussion from screen center
@@ -1621,13 +1644,42 @@ function runVisualization() {
             var x = d3.scaleLinear().domain([0, numHill-1]).range([0, svgWidth+0]);
             var y = d3.scaleLinear().domain([0, frequencyMax * chartHeightMultiplier]).range([svgHeight, 0]);
     
+            //make defs and add the linear gradient
+            var lg = svg.append("defs").append("linearGradient")
+                .attr("id", "mygrad")//id of the gradient
+                .attr("x1", "0%")
+                .attr("x2", "0%")
+                .attr("y1", "0%")
+                .attr("y2", "100%")//since its a vertical linear gradient 
+            
+            
+            lg.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", backgroundColour)//background colour at the top
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "100%")
+                .style("stop-color", fillColour)//white at the bottom
+                .style("stop-opacity", 1)
+
+            svg.append("rect")
+                .attr("fill",'url(#mygrad)')
+                .attr("x",0)
+                .attr("y",0)
+                .attr("width",svgWidth)
+                .attr("height",svgHeight)
+            
             //Add the horizontal lines
             var horizontalLines = svg.selectAll('line')
                 .data(horizontalLineData)
                 .enter()
                 .append('line')
                 .attr("stroke", strokeColour)
-                .attr("stroke-width", strokeWidth)
+                .attr("stroke-width", strokeWidth*2)
+                .attr("stroke-opacity",function(d,i){
+                    return Math.max(0, (numHorizontalLines-i) / numHorizontalLines - 0.35);
+                })
                 .attr("x1", 0)
                 .attr("y1", function (d,i) {
                     return svgHeight / numHorizontalLines * i;
@@ -1636,12 +1688,36 @@ function runVisualization() {
                 .attr("y2", function (d,i) {
                     return svgHeight / numHorizontalLines * i;
                 });
+
+            //Draw the stars
+            for (var j=0; j<numStars; j++){
+
+                var xVal = j * svgWidth / numStars + (svgWidth / numStars/2);
+                var yVal = Math.random() * svgHeight * 0.45;
+                var rotationVal = Math.random() * 360;
+                var hueValue = Math.random() * hueRange + hueStart;
+                var saturationValue = Math.random() * 0.3 + 0.5;
+                var lightnessValue = Math.random() * 0.3 + 0.5;
+
+                svg.append("rect")
+                    .attr("x",xVal)
+                    .attr("y",yVal)
+                    .attr("height",5)
+                    .attr("width",5)
+                    .attr("fill",d3.hsl(hueValue, saturationValue, lightnessValue))
+                    .attr("transform","rotate("+rotationVal+" "+xVal+" "+yVal+")")
+                    .attr("class","stars")
+
+                starPositionArray.push({x: xVal, y: yVal, r: rotationVal});
+            }
+
+            //console.log(starPositionArray);
                     
             
             // Add the area
             var path = svg.append("path")
                 .datum(hillFrequencyData)
-                .attr("fill", "white")
+                .attr("fill","white")
                 .attr("fill-opacity",opacity)
                 .attr("stroke", "white")
                 .attr("stroke-width", strokeWidth)
@@ -1654,10 +1730,11 @@ function runVisualization() {
     
             // draw vertical lines
     
-            var verticalLines = svg.selectAll('rect')
+            var verticalLines = svg.selectAll('.verticalLines')
                 .data(hillFrequencyData)
                 .enter()
                 .append('rect')
+                .attr("class","verticalLines")
                 .attr('x', function (d, i) {
                     return i * (svgWidth / (hillFrequencyData.length-1));
                 })
@@ -1668,14 +1745,20 @@ function runVisualization() {
     
             // Continuously loop and update chart with frequency data.
             function renderHillChart() {
+
+                var t = performance.now();
     
                 // Copy frequency data to frequencyData array.
-                analyser.getByteFrequencyData(hillFrequencyData);
-    
+                analyser.getByteFrequencyData(frequencyData);
+
+                hillFrequencyData = frequencyData.slice(0,numHill);
+                starFrequencyData = frequencyData.slice(numHill,numHill+numStars);
+
                 requestAnimationFrame(renderHillChart);
     
                 
                 path
+                    .datum(hillFrequencyData)
                     .attr("d", d3.area()
                         .x(function(d,i) { return x(i) })
                         .y0(y(0))
@@ -1698,6 +1781,19 @@ function runVisualization() {
                         
                         return svgHeight - pathY;
                     });
+
+                svg.selectAll(".stars")
+                    .data(starFrequencyData)    
+                    .attr("height", function(d,i){
+                        return Math.max(d-starThreshold,0) / (255 - starThreshold) * maxStarSize;
+                    })
+                    .attr("width", function(d,i){
+                        return Math.max(d-starThreshold,0) / (255 - starThreshold) * maxStarSize;
+                    })
+                    .attr("transform",function(d,i){
+                        var newRotation = starPositionArray[i].r + t/starRotationSpeed;
+                        return "rotate("+newRotation+" "+starPositionArray[i].x+" "+starPositionArray[i].y+")";
+                    })
                 
             }
     
@@ -1768,7 +1864,7 @@ function runVisualization() {
             
             var hexagonsFrequencyData = new Uint8Array(numHexagons);
 
-            console.log("hexagons data length: "+hexagonsData.length);
+            //console.log("hexagons data length: "+hexagonsData.length);
 
             var hexes = svg.selectAll("g")
                 .data(hexagonsData)
@@ -2692,7 +2788,7 @@ function runVisualization() {
 
             }
 
-            console.log(pointArray);
+            //console.log(pointArray);
 
             const thresholds = 5;
 
@@ -2798,7 +2894,7 @@ function runVisualization() {
                 cellPositionArray.push({"row": rowVal, "col": colVal});
             }
 
-            console.log(cellPositionArray);
+            //console.log(cellPositionArray);
 
             //draw rectangle in a random position, and remove that position afterwards
 
@@ -3167,7 +3263,6 @@ function runVisualization() {
                 .attr("stroke-width", strokeWidth)
                 .attr("transform", "translate(" + svgWidth / 2 + "," + svgHeight / 2 + ")")
                 .attr("d", line3);
-
             
             // Continuously loop and update chart with frequency data.
             function renderRadialChart() {
@@ -3217,10 +3312,10 @@ function runVisualization() {
             var strokeWidth = 12;
 
             var numTiles = numCols * numRows;
-            console.log("numTiles: "+numTiles);
+            //console.log("numTiles: "+numTiles);
 
             var numIntersections = (numCols+1) * (numRows);
-            console.log("numIntersections: "+numIntersections);
+            //console.log("numIntersections: "+numIntersections);
 
             var tileCenterXArray = [];
             var tileCenterYArray = [];
@@ -3419,10 +3514,10 @@ function runVisualization() {
             var strokeWidth = 14;
 
             var numTiles = numCols * numRows;
-            console.log("numTiles: "+numTiles);
+            //console.log("numTiles: "+numTiles);
 
             var numIntersections = (numCols+1) * (numRows);
-            console.log("numIntersections: "+numIntersections);
+            //console.log("numIntersections: "+numIntersections);
 
             var tileCenterXArray = [];
             var tileCenterYArray = [];
@@ -3810,7 +3905,7 @@ function runVisualization() {
                 }
             }
 
-            console.log(angleArray);
+            //console.log(angleArray);
 
             //draw circle at random position
 
@@ -3837,6 +3932,7 @@ function runVisualization() {
                 .attr("cy", circle3Y)
                 .attr("fill",circle3Fill)
                 .attr("fill-opacity",circleOpacity)
+                .attr("stroke",fillColour)
 
             var intervalCall = setInterval(function() {
 
@@ -3860,6 +3956,8 @@ function runVisualization() {
                 }
 
                 //Move the circle based on the flow field angle
+                
+                
                 svg
                     .append("circle")
                     .attr("r",circleSize)
@@ -3868,7 +3966,6 @@ function runVisualization() {
                     .attr("fill",circleFill)
                     .attr("fill-opacity",circleOpacity)
                     .attr("stroke",backgroundColour)
-
 
                 //circle 2
                 currentAngle2 = angleArray[Math.floor(circle2Y / cellSize)][Math.floor(circle2X / cellSize)];
@@ -3888,6 +3985,7 @@ function runVisualization() {
                 }
 
                 //Move the circle based on the flow field angle
+                
                 svg
                     .append("circle")
                     .attr("r",circle2Size)
@@ -3896,6 +3994,7 @@ function runVisualization() {
                     .attr("fill",circle2Fill)
                     .attr("fill-opacity",circleOpacity)
                     .attr("stroke",backgroundColour)
+                
 
                 //circle 3
                 currentAngle3 = angleArray[Math.floor(circle3Y / cellSize)][Math.floor(circle3X / cellSize)];
@@ -3915,6 +4014,7 @@ function runVisualization() {
                 }
 
                 //Move the circle based on the flow field angle
+                
                 svg
                     .append("circle")
                     .attr("r",circle3Size)
@@ -3924,6 +4024,8 @@ function runVisualization() {
                     .attr("fill-opacity",circleOpacity)
                     .attr("stroke",fillColour)
 
+                
+
             }, 1000/fps);
             
             intervals.push(intervalCall);
@@ -3931,6 +4033,296 @@ function runVisualization() {
             
         
 
+        }
+
+        else if(visualizationChoice == "flow2"){
+            console.log("run flow2 visual");
+
+            //perlin inputs
+            //source: https://joeiddon.github.io/projects/javascript/perlin
+
+            var GRID_SIZE = 6;
+            var RESOLUTION = 8;
+            
+            var hueRange = 40;
+
+            var pixel_size = Math.ceil(svgWidth / RESOLUTION);
+
+            var num_pixels = GRID_SIZE / RESOLUTION;
+
+            var pixelCount = 0;
+
+            //flow field inputs
+            var gridHeight = svgHeight*1;
+            var gridWidth = svgWidth*1;
+            //var cellSize = gridWidth / (GRID_SIZE * RESOLUTION);
+
+            var numCols = GRID_SIZE * RESOLUTION;
+            var numRows = GRID_SIZE * RESOLUTION;
+            var numCells = numCols * numRows;
+
+            var cellWidth = Math.ceil(gridWidth / numCols);
+            var cellHeight = Math.ceil(gridHeight / numCols);
+
+            var angleArray = [];
+
+            var angleRange = Math.PI * 0.4;
+            var startingAngle = Math.random() * (Math.PI*2);
+            var endingAngle = startingAngle + angleRange;
+
+            //animation inputs
+            analyser.smoothingTimeConstant = 0.94;
+
+            //circle inputs
+            var stepLength = cellWidth * 0.035;
+
+            var maxCircleSize = Math.min(svgHeight, svgWidth)/2 * 0.18;
+            var maxStrokeWidth = 9;
+            var circleSize = 20;
+            var sizeExponent = 1;
+            var frequencyThreshold = 180;
+
+            var circlePositionArray = [];
+
+            var numCircles = 36;
+            var flowFrequencyData = new Uint8Array(numCircles);
+
+            //line inputs
+            var numLines = 50;
+            
+            var minLinePoints = 4;
+            var maxLinePoints = 300;
+            var linePointRange = maxLinePoints - minLinePoints;
+
+            var maxLineStrokeWidth = 3;
+            var maxLineOpacity = 0.5;
+
+            var lineStepLength = cellWidth * 0.5;
+
+            //clear the background on refresh
+            perlin.seed();
+
+            //create flow field angles
+            for (var y = 0; y < GRID_SIZE; y += num_pixels / GRID_SIZE){
+
+                angleArray[y / (num_pixels / GRID_SIZE)] = [];
+
+
+                for (var x = 0; x < GRID_SIZE; x += num_pixels / GRID_SIZE){
+                    
+                    var perlinValue = Number(perlin.get(x,y));
+                    var normalizedPerlinValue = (perlinValue + 1)/2; //between 0 and 1
+                    var lightnessValue = (Math.sin(perlinValue * Math.PI) + 1)/2 / 8;
+
+                    //var currentColour = d3.hsl(perlinValue * hueRange + fillHue, 0.6, 0.5);
+                    var currentColour = d3.hsl(backgroundHue,0.3,lightnessValue);
+
+                    //heatmap
+                    svg
+                        .append("rect")
+                        .attr("x",x / GRID_SIZE * svgWidth)
+                        .attr("y",y / GRID_SIZE * svgHeight)
+                        .attr("width",pixel_size)
+                        .attr("height",pixel_size)
+                        .attr("fill",currentColour)
+                        .attr("fill-opacity",0.04)
+                        .attr("stroke","none")
+                    
+
+                    pixelCount++;
+
+                    //0 PI is South, 0.5 PI is East, 1 PI is North, 1.5 PI is West, 2 PI is South 
+                    var angle = normalizedPerlinValue * (Math.PI * 2);
+
+                    angleArray[y / (num_pixels / GRID_SIZE)][x / (num_pixels / GRID_SIZE)] = angle;
+                }
+            }
+            //console.log(angleArray);
+
+
+            /*
+            //draw flow line paths
+
+            var lineFunction = d3.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+                .curve(d3.curveBasis)
+
+            
+            for(var i=0; i<numLines; i++){
+
+                var numPoints = minLinePoints + Math.floor(linePointRange * Math.random());
+                var points = [];
+
+                var previousLineX = svgWidth * Math.random();
+                var previousLineY = svgHeight * Math.random();
+                points.push({"x": previousLineX, "y": previousLineY});
+    
+                for(var j=0; j<numPoints; j++){
+                    
+                    if(previousLineX > svgWidth || previousLineX < 0 || previousLineY > svgHeight || previousLineY < 0){
+                        break;
+                    }
+    
+                    var currentAngle = angleArray[Math.floor(previousLineY / cellHeight)][Math.floor(previousLineX / cellWidth)];
+                    var xTranslate = Math.sin(currentAngle) * lineStepLength;
+                    var yTranslate = Math.cos(currentAngle) * lineStepLength;
+    
+                    var xVal = previousLineX + xTranslate;
+                    var yVal = previousLineY + yTranslate;
+    
+                    points.push({"x": xVal, "y": yVal});
+    
+                    previousLineX = xVal;
+                    previousLineY = yVal;
+    
+                }
+    
+                svg
+                    .append('path')
+                    .datum(points)
+                    .attr('d', lineFunction)
+                    .attr('stroke', strokeColour)
+                    .attr("stroke-width", maxLineStrokeWidth * Math.random())
+                    .attr("stroke-opacity",Math.random() * maxLineOpacity)
+                    .attr('fill', 'none');
+
+            }
+            */
+            
+            
+            //draw circle at random position
+            for(var i=0; i<numCircles; i++){
+                
+                var xVal = Math.random() * svgWidth;
+                var yVal = Math.random() * svgHeight;
+
+                circlePositionArray.push({x: xVal, y: yVal});
+
+                var hueValue = fillHue - hueRange/2 + Math.random() * hueRange;
+                var saturationValue = 0.5 * Math.random() + 0.3;
+                var lightnessValue = 0.5 * Math.random() + 0.3;
+
+                svg
+                    .append("circle")
+                    .attr("id","circle"+(i+1))
+                    .attr("r",circleSize)
+                    .attr("cx", xVal)
+                    .attr("cy", yVal)
+                    .attr("fill",d3.hsl(hueValue, saturationValue, lightnessValue))
+                    .attr("fill-opacity",Math.random() + 0.1)
+                    //.attr("stroke",strokeColour)
+                    //.attr("stroke-width",Math.random() * maxStrokeWidth)
+            }
+
+            function renderFlow2Chart() {
+                
+                analyser.getByteFrequencyData(flowFrequencyData);
+                requestAnimationFrame(renderFlow2Chart);
+
+                for(var j=0; j<numCircles; j++){
+
+                    var currentX = circlePositionArray[j].x;
+                    var currentY = circlePositionArray[j].y;
+                    var currentAngle = angleArray[Math.floor(currentY / cellHeight)][Math.floor(currentX / cellWidth)];
+                    
+                    var currentRadius = (Math.pow(Math.max(0,flowFrequencyData[j]-frequencyThreshold),sizeExponent) / Math.pow((255-frequencyThreshold),sizeExponent)) * maxCircleSize;
+                    
+                    var xTranslate = Math.sin(currentAngle) * stepLength;
+                    var yTranslate = Math.cos(currentAngle) * stepLength;
+    
+                    var newX = currentX + xTranslate;
+                    var newY = currentY + yTranslate;
+    
+                    //place circle back on the canvas to restart once it goes out of bounds
+                    if(newX > svgWidth || newX < 0 || newY > svgHeight || newY < 0){
+                        
+                        //when circle goes off screen, start it back at the opposite end
+                        newX = Math.random() * svgWidth-1;
+                        newY = svgHeight-1;  
+
+                        /*
+                        if(newX > svgWidth){
+                            newX = 1;
+                            newY = Math.random() * svgHeight;
+                        }
+
+                        else if(newX < 0){
+                            newX = svgWidth-1;
+                            newY = Math.random() * svgHeight;     
+                        }
+
+                        else if(newY > svgHeight){
+                            newX = Math.random() * svgWidth;
+                            newY = 1;     
+                        }
+
+                        else if(newY < 0){
+                            newX = Math.random() * svgWidth;
+                            newY = svgHeight-1;     
+                        }
+                        */
+                    }
+
+                    svg.select("#circle"+(j+1))
+                        .attr("cx",newX)
+                        .attr("cy",newY)
+                        .attr("r",currentRadius)
+
+                    circlePositionArray[j].x = newX;
+                    circlePositionArray[j].y = newY;
+
+                }
+
+
+            }
+
+            renderFlow2Chart();
+
+
+            /*
+
+            //update circles based on flow field angles and frequency data
+            var intervalCall = setInterval(function() {
+
+                analyser.getByteFrequencyData(flowFrequencyData);
+
+                for(var j=0; j<numCircles; j++){
+
+                    var currentX = circlePositionArray[j].x;
+                    var currentY = circlePositionArray[j].y;
+                    var currentAngle = angleArray[Math.floor(currentY / cellSize)][Math.floor(currentX / cellSize)];
+                    
+                    var currentRadius = (Math.pow(Math.max(0,flowFrequencyData[j]-frequencyThreshold),sizeExponent) / Math.pow((255-frequencyThreshold),sizeExponent)) * maxCircleSize;
+                    
+                    var xTranslate = Math.sin(currentAngle) * stepLength;
+                    var yTranslate = Math.cos(currentAngle) * stepLength;
+    
+                    var newX = currentX + xTranslate;
+                    var newY = currentY + yTranslate;
+    
+                    //place circle back on the canvas to restart once it goes out of bounds
+                    if(newX > svgWidth || newX < 0 || newY > svgHeight || newY < 0){
+                        newX = Math.random() * svgWidth;
+                        newY = Math.random() * svgHeight;
+                    }
+
+                    svg.select("#circle"+(j+1))
+                        .attr("cx",newX)
+                        .attr("cy",newY)
+                        .attr("r",currentRadius)
+
+                    circlePositionArray[j].x = newX;
+                    circlePositionArray[j].y = newY;
+
+                }
+
+
+            }, 1000/fps);
+            
+            intervals.push(intervalCall);
+            */
+  
         }
 
         else if(visualizationChoice == "tetris"){
@@ -4038,7 +4430,7 @@ function animateDancingCircles(){
 
     if(visualizationChoice == "dancingCircles"){
 
-        t /= 40000;
+        t /= 50000;
 
         svg.selectAll("circle").attr("cx", function(d) {
             return svgWidth/2.4 * Math.sin(3 * d * t) + svgWidth/2;
