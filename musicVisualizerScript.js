@@ -4392,8 +4392,245 @@ function runVisualization() {
             // Run the loop
             renderTetrisChart();
             
+        }
 
+        else if(visualizationChoice == "fan"){
+            console.log("run fan visual");
 
+            var numSectors = 24;
+            var hueRange = 80;
+
+            //line inputs
+            var lineLength = Math.min(svgHeight,svgWidth)/2 * 0.9;
+            var lineStrokeWidth = 4;
+
+            //arc inputs
+            var innerRadius = lineLength * 0.3;
+            var outerRadius = lineLength;
+            var radiusRange = outerRadius - innerRadius;
+            var angleRange = (Math.PI * 2) / numSectors;
+            var startAngleArray = [];
+
+            var currentSector = 0;
+            var previousSector = -1;
+            
+            //animation inputs
+            var animationSpeed = 10000; //higher value gives slower animation
+            var fanFrequencyData = new Uint8Array(numSectors);
+            var startingTime = performance.now(); 
+            var sectorStartTime = performance.now();
+
+            var fanState = "open";
+            var sectorStateArray = [];
+
+            analyser.smoothingTimeConstant = 0.94;
+
+            //initial draw of arc and spoke line in each sector
+            for(var i=0; i<numSectors; i++){
+
+                var startAngle = -Math.PI * 0.5 + (angleRange * i);
+                var endAngle = startAngle;
+                
+                startAngleArray.push(startAngle);
+                sectorStateArray.push("off");
+                
+                var hueValue = fillHue - hueRange/2 + Math.random() * hueRange;
+                var saturationValue = Math.random() * 0.3 + 0.5;
+                var lightnessValue = Math.random() * 0.3 + 0.5;
+    
+                var singleArc = d3.arc()
+                    .startAngle(startAngle)
+                    .endAngle(endAngle)
+                    .innerRadius(innerRadius)
+                    .outerRadius(outerRadius);
+                
+                //draw arc in each sector
+                svg.append("path")
+                    .attr("d", singleArc)
+                    .attr("class","arc")
+                    .attr("id","arc"+(i))
+                    .attr("fill", d3.hsl(hueValue, saturationValue, lightnessValue))
+                    .attr("transform", "translate("+svgWidth/2+","+svgHeight/2+")");
+
+                
+                var lineXVal = Math.sin(startAngle) * (lineLength) + svgWidth/2;
+                var lineYVal = svgHeight - (Math.cos(startAngle) * (lineLength) + svgHeight/2);
+
+                //draw spoke lines
+                svg.append("line")
+                    .attr("x1",svgWidth/2)
+                    .attr("x2",lineXVal)
+                    .attr("y1",svgHeight/2)
+                    .attr("y2",lineYVal)
+                    .attr("stroke",strokeColour)
+                    .attr("stroke-width",lineStrokeWidth)
+                    .attr("stroke-opacity",0)
+                    .attr("id","line"+i)
+        
+            }
+            
+            //draw other lines
+            var activeLine = svg.append("line")
+                            .attr("x1",svgWidth/2 - lineLength)
+                            .attr("x2",svgWidth/2)
+                            .attr("y1",svgHeight/2)
+                            .attr("y2",svgHeight/2)
+                            .attr("stroke",strokeColour)
+                            .attr("stroke-width",lineStrokeWidth)
+
+            //passive starting line
+            svg.append("line")
+                .attr("x1",svgWidth/2 - lineLength)
+                .attr("x2",svgWidth/2)
+                .attr("y1",svgHeight/2)
+                .attr("y2",svgHeight/2)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",lineStrokeWidth) 
+
+            //animation
+            function renderFanChart() {
+                
+                var currentTime = performance.now();
+                var timeElapsed = currentTime - startingTime;
+                var shift = timeElapsed / animationSpeed;
+
+                var currentVal = -shift * Math.PI - Math.PI * 0.5;
+                var xVal = Math.sin(currentVal) * (lineLength) + svgWidth/2;
+                var yVal = Math.cos(currentVal) * (lineLength) + svgHeight/2;
+                currentSector = Math.floor(timeElapsed / (animationSpeed*2/numSectors)) % numSectors;
+
+                //update values when moving into a new sector
+                if(currentSector != previousSector){
+                    console.log("draw line segment");
+                    
+                    d3.select("#line"+currentSector)
+                        .attr("stroke-opacity",function(d,i){
+                            if(fanState == "open"){
+                                return 1;
+                            } else {
+                                return 0;
+                            }
+                        })
+
+                    sectorStartTime = performance.now();
+
+                    //toggle sector state on vs off
+                    if(sectorStateArray[currentSector] == "off"){
+                        sectorStateArray[currentSector] = "on";
+                    } else {
+                        sectorStateArray[currentSector] = "off";
+                    }
+
+                    //toggle overall fan state open/close when completing a full cycle
+                    if(currentSector == 0 && previousSector == (numSectors-1)){
+                        if(fanState == "open"){
+                            fanState = "close";
+                        } else {
+                            fanState = "open";
+                        }
+                    }
+                }
+
+                previousSector = currentSector;
+
+                var sectorTimeElapsed = currentTime - sectorStartTime;
+
+                analyser.getByteFrequencyData(fanFrequencyData);
+
+                requestAnimationFrame(renderFanChart);
+
+                //update arcs
+                d3.selectAll(".arc")
+                    .data(fanFrequencyData)
+                    .attr("d", function(d,i){
+
+                        currentState = sectorStateArray[i];
+                                            
+                        if(i == currentSector){
+                            if(currentState == "on"){
+                                //open sector over time
+                                var newStartAngle = startAngleArray[i];
+                                var newEndAngle = newStartAngle + (sectorTimeElapsed / (animationSpeed*2) * (Math.PI*2));
+                                
+                                return d3.arc()
+                                    .startAngle(newStartAngle)
+                                    .endAngle(newEndAngle)
+                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .outerRadius(outerRadius)(d);
+
+                            } else {
+                                //close sector over time
+                                var newStartAngle = startAngleArray[i] + (sectorTimeElapsed / (animationSpeed*2) * (Math.PI*2));
+                                var newEndAngle = startAngleArray[i] + angleRange;
+                                
+                                return d3.arc()
+                                    .startAngle(newStartAngle)
+                                    .endAngle(newEndAngle)
+                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .outerRadius(outerRadius)(d);
+                            }
+                        }
+                        
+                        else if(i < currentSector) {
+                            
+                            if(fanState == "open"){
+                                //show full sector
+                                var newStartAngle = startAngleArray[i];
+                                var newEndAngle = newStartAngle + angleRange;
+                                
+                                return d3.arc()
+                                    .startAngle(newStartAngle)
+                                    .endAngle(newEndAngle)
+                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .outerRadius(outerRadius)(d);
+                            } else {
+                                //don't show sector
+                                var newStartAngle = startAngleArray[currentSector];
+                                var newEndAngle = newStartAngle;
+                                
+                                return d3.arc()
+                                    .startAngle(newStartAngle)
+                                    .endAngle(newEndAngle)
+                                    .innerRadius(innerRadius)
+                                    .outerRadius(outerRadius)(d);
+                            }
+                        }
+
+                        else if(i > currentSector){
+                            if(sectorStateArray[i] == "on"){
+                                //show full sector
+                                var newStartAngle = startAngleArray[i];
+                                var newEndAngle = newStartAngle + angleRange;
+                                
+                                return d3.arc()
+                                    .startAngle(newStartAngle)
+                                    .endAngle(newEndAngle)
+                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .outerRadius(outerRadius)(d);
+                            } else {
+                                //don't show sector
+                                var newStartAngle = startAngleArray[currentSector];
+                                var newEndAngle = newStartAngle;
+                                
+                                return d3.arc()
+                                    .startAngle(newStartAngle)
+                                    .endAngle(newEndAngle)
+                                    .innerRadius(innerRadius)
+                                    .outerRadius(outerRadius)(d);
+                            }
+                        }
+                    })
+
+                //update line arm
+                activeLine
+                    .attr("x1",svgWidth/2)    
+                    .attr("x2",xVal)
+                    .attr("y1",svgHeight/2)
+                    .attr("y2",yVal)         
+            }
+
+            // Run the animation loop
+            renderFanChart();
         }
 
 
