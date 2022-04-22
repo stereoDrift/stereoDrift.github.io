@@ -4405,14 +4405,17 @@ function runVisualization() {
             var lineStrokeWidth = 4;
 
             //arc inputs
-            var innerRadius = lineLength * 0.3;
+            var minInnerRadius = lineLength * 0.3;
+            var maxInnerRadius = lineLength * 1;
             var outerRadius = lineLength;
-            var radiusRange = outerRadius - innerRadius;
+            var radiusRange = maxInnerRadius - minInnerRadius;
             var angleRange = (Math.PI * 2) / numSectors;
             var startAngleArray = [];
 
             var currentSector = 0;
             var previousSector = -1;
+
+            var frequencyThreshold = 50;
             
             //animation inputs
             var animationSpeed = 10000; //higher value gives slower animation
@@ -4423,7 +4426,7 @@ function runVisualization() {
             var fanState = "open";
             var sectorStateArray = [];
 
-            analyser.smoothingTimeConstant = 0.88;
+            analyser.smoothingTimeConstant = 0.94;
 
             //initial draw of arc and spoke line in each sector
             for(var i=0; i<numSectors; i++){
@@ -4441,7 +4444,7 @@ function runVisualization() {
                 var singleArc = d3.arc()
                     .startAngle(startAngle)
                     .endAngle(endAngle)
-                    .innerRadius(innerRadius)
+                    .innerRadius(maxInnerRadius)
                     .outerRadius(outerRadius);
                 
                 //draw arc in each sector
@@ -4555,7 +4558,7 @@ function runVisualization() {
                                 return d3.arc()
                                     .startAngle(newStartAngle)
                                     .endAngle(newEndAngle)
-                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .innerRadius(maxInnerRadius - (Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold) * radiusRange))
                                     .outerRadius(outerRadius)(d);
 
                             } else {
@@ -4566,7 +4569,7 @@ function runVisualization() {
                                 return d3.arc()
                                     .startAngle(newStartAngle)
                                     .endAngle(newEndAngle)
-                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .innerRadius(maxInnerRadius - (Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold) * radiusRange))
                                     .outerRadius(outerRadius)(d);
                             }
                         }
@@ -4581,7 +4584,7 @@ function runVisualization() {
                                 return d3.arc()
                                     .startAngle(newStartAngle)
                                     .endAngle(newEndAngle)
-                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .innerRadius(maxInnerRadius - (Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold) * radiusRange))
                                     .outerRadius(outerRadius)(d);
                             } else {
                                 //don't show sector
@@ -4591,7 +4594,7 @@ function runVisualization() {
                                 return d3.arc()
                                     .startAngle(newStartAngle)
                                     .endAngle(newEndAngle)
-                                    .innerRadius(innerRadius)
+                                    .innerRadius(maxInnerRadius)
                                     .outerRadius(outerRadius)(d);
                             }
                         }
@@ -4605,7 +4608,7 @@ function runVisualization() {
                                 return d3.arc()
                                     .startAngle(newStartAngle)
                                     .endAngle(newEndAngle)
-                                    .innerRadius(outerRadius - (d/255 * radiusRange))
+                                    .innerRadius(maxInnerRadius - (Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold) * radiusRange))
                                     .outerRadius(outerRadius)(d);
                             } else {
                                 //don't show sector
@@ -4615,7 +4618,7 @@ function runVisualization() {
                                 return d3.arc()
                                     .startAngle(newStartAngle)
                                     .endAngle(newEndAngle)
-                                    .innerRadius(innerRadius)
+                                    .innerRadius(maxInnerRadius)
                                     .outerRadius(outerRadius)(d);
                             }
                         }
