@@ -4423,7 +4423,7 @@ function runVisualization() {
             var fanState = "open";
             var sectorStateArray = [];
 
-            analyser.smoothingTimeConstant = 0.94;
+            analyser.smoothingTimeConstant = 0.88;
 
             //initial draw of arc and spoke line in each sector
             for(var i=0; i<numSectors; i++){
