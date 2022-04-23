@@ -4636,6 +4636,134 @@ function runVisualization() {
             renderFanChart();
         }
 
+        else if(visualizationChoice == "connect36"){
+            var numCols = 6;
+            var numRows = 6;
+            var numCircles = numCols * numRows;
+            var cellWidth = svgWidth / numCols;
+            var cellHeight = svgHeight / numRows;
+            var circleRadius = Math.min(cellWidth, cellHeight)/2 * 0.55;
+            var maxTranslate = circleRadius * 1.0; //maximum amount of pixels to move away from circle center
+            var pixelOffset = circleRadius * 0.55;
+            var strokeWidth = 2;
+
+            var circle1Opacity = 1;
+            var circle2Opacity = 0.5;
+
+            var circlePositionArray = [];
+
+            var hueRange1 = 120;
+            var hueRange2 = 120;
+            var hue1 = backgroundHue;
+            var hue2 = fillHue;
+
+            var frequencyThreshold = 170;
+
+            //var backgroundCircleRadius = svgWidth * 0.7014;
+            var backgroundCircleRadius = svgWidth * 0.82;
+            var backgroundCircleOpacity = 0.15;
+            var backgroundCircleHueRange = 360;
+
+            var meldFrequencyData = new Uint8Array(numCircles);
+            analyser.smoothingTimeConstant = 0.92;
+
+            //draw large background circles
+            svg.append("circle")
+                .attr("cx",0)
+                .attr("cy",0)
+                .attr("r",backgroundCircleRadius)
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill-opacity",backgroundCircleOpacity)
+
+            svg.append("circle")
+                .attr("cx",svgWidth)
+                .attr("cy",0)
+                .attr("r",backgroundCircleRadius)
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill-opacity",backgroundCircleOpacity)
+
+            svg.append("circle")
+                .attr("cx",0)
+                .attr("cy",svgHeight)
+                .attr("r",backgroundCircleRadius)
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill-opacity",backgroundCircleOpacity)
+
+            svg.append("circle")
+                .attr("cx",svgWidth)
+                .attr("cy",svgHeight)
+                .attr("r",backgroundCircleRadius)
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill-opacity",backgroundCircleOpacity)
+
+            //initial draw of grid and circles
+            for(var i=0; i<numRows; i++){
+                for(var j=0; j<numCols; j++){
+                    
+                    var circleX = j * cellWidth + circleRadius + pixelOffset; 
+                    var circleY = svgHeight - ((i+1) * cellHeight) + circleRadius + pixelOffset;
+
+                    circlePositionArray.push({x: circleX, y: circleY});
+
+                    var hueValue1 = hue1 - hueRange1/2 + Math.random() * hueRange1;
+                    var saturationValue1 = 0.5;
+                    var lightnessValue1 = 0.5;
+
+                    var hueValue2 = hue2 - hueRange2/2 + Math.random() * hueRange2;
+                    var saturationValue2 = 0.7 * Math.random() + 0.3;
+                    var lightnessValue2 = 0.5 * Math.random() + 0.3;
+                    
+                    //draw first circles - static
+                    svg
+                        .append("circle")
+                        .attr("r",circleRadius)
+                        .attr("cx",circleX)
+                        .attr("cy",circleY)
+                        .attr("fill",d3.hsl(hueValue1, saturationValue1, lightnessValue1))
+                        .attr("fill-opacity",circle1Opacity)
+                        //.attr("stroke",strokeColour)
+                        //.attr("stroke-width",strokeWidth)
+
+                    //draw active circles which will translate based on music
+                    svg
+                        .append("circle")
+                        .attr("r",circleRadius)
+                        .attr("cx",circleX)
+                        .attr("cy",circleY)
+                        .attr("fill",d3.hsl(hueValue2, saturationValue2, lightnessValue2))
+                        .attr("fill-opacity",circle2Opacity)
+                        .attr("class","activeCircles")
+                        .attr("stroke",strokeColour)
+                        .attr("stroke-width",strokeWidth)
+                }
+            }
+
+
+            //animate
+            function renderMeldChart() {
+
+                requestAnimationFrame(renderMeldChart);
+
+                analyser.getByteFrequencyData(meldFrequencyData);
+
+                svg.selectAll(".activeCircles")
+                    .data(meldFrequencyData)
+                    .attr("cx",function(d,i){
+                        var translateVal = maxTranslate * (Math.max(0, d-frequencyThreshold) / (255-frequencyThreshold));
+                        return circlePositionArray[i].x + translateVal;
+                    })
+                    .attr("cy",function(d,i){
+                        var translateVal = maxTranslate * (Math.max(0, d-frequencyThreshold) / (255-frequencyThreshold));
+                        return circlePositionArray[i].y + translateVal;
+                    })
+
+            }
+
+            //run the animation loop
+            renderMeldChart();
+
+        }
+
 
     } else{
         console.log("Audio not playing");
