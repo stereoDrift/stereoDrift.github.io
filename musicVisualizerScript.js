@@ -4659,42 +4659,46 @@ function runVisualization() {
 
             var frequencyThreshold = 170;
 
-            //var backgroundCircleRadius = svgWidth * 0.7014;
-            var backgroundCircleRadius = svgWidth * 0.82;
-            var backgroundCircleOpacity = 0.15;
-            var backgroundCircleHueRange = 360;
-
             var meldFrequencyData = new Uint8Array(numCircles);
             analyser.smoothingTimeConstant = 0.92;
+
+            /*
+            //var backgroundCircleRadius = svgWidth * 0.7014;
+            var backgroundCircleRadius = svgWidth * 0.82;
+            var backgroundCircleOpacity = 0.10;
+            var backgroundCircleHueRange = 360;
+            var backgroundCircleSaturation = 0.3;            
+            var backgroundCircleLightness = 0.8;
 
             //draw large background circles
             svg.append("circle")
                 .attr("cx",0)
                 .attr("cy",0)
                 .attr("r",backgroundCircleRadius)
-                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,backgroundCircleSaturation,backgroundCircleLightness))
                 .attr("fill-opacity",backgroundCircleOpacity)
 
             svg.append("circle")
                 .attr("cx",svgWidth)
                 .attr("cy",0)
                 .attr("r",backgroundCircleRadius)
-                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,backgroundCircleSaturation,backgroundCircleLightness))
                 .attr("fill-opacity",backgroundCircleOpacity)
 
             svg.append("circle")
                 .attr("cx",0)
                 .attr("cy",svgHeight)
                 .attr("r",backgroundCircleRadius)
-                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,backgroundCircleSaturation,backgroundCircleLightness))
                 .attr("fill-opacity",backgroundCircleOpacity)
 
             svg.append("circle")
                 .attr("cx",svgWidth)
                 .attr("cy",svgHeight)
                 .attr("r",backgroundCircleRadius)
-                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,0.5,0.5))
+                .attr("fill",d3.hsl(backgroundHue+Math.random()*backgroundCircleHueRange-backgroundCircleHueRange/2,backgroundCircleSaturation,backgroundCircleLightness))
                 .attr("fill-opacity",backgroundCircleOpacity)
+            */
 
             //initial draw of grid and circles
             for(var i=0; i<numRows; i++){
@@ -4761,6 +4765,115 @@ function runVisualization() {
 
             //run the animation loop
             renderMeldChart();
+
+        }
+
+        else if(visualizationChoice == "bpm"){
+
+            var minTimeGap = 400; //min gap in milliseconds after beat is recorded
+            var frequencyThreshold = 180;
+            var frequencyBuckets = 10;
+            var bpmFrequencyData = new Uint8Array(frequencyBuckets)
+            var timeOfLastBeat = performance.now();
+            var beatCount = 0;
+            var radiusIncrement = 8;
+            var minRadius = 10;
+
+            function renderBPMChart() {
+
+                analyser.getByteFrequencyData(bpmFrequencyData)
+
+                var currentTime = performance.now();
+
+                requestAnimationFrame(renderBPMChart);
+
+                if(bpmFrequencyData[0] > frequencyThreshold && (currentTime - timeOfLastBeat) > minTimeGap){
+                    timeOfLastBeat = currentTime;
+                    beatCount++;
+                    
+                    svg
+                        .append("circle")
+                        .attr("r",minRadius + beatCount * radiusIncrement)
+                        .attr("cx",svgWidth/2)
+                        .attr("cy",svgHeight/2)
+                        .attr("fill","none")
+                        .attr("stroke",strokeColour)
+                        .attr("stroke-width",2)
+                        
+                }
+
+
+            }
+
+            renderBPMChart();
+
+        }
+
+        else if(visualizationChoice == "eclipse"){
+
+            var numCircles = 60;
+            var circleRadius = Math.min(svgHeight, svgWidth)/2 * 0.2;
+            var maxShift = Math.min(svgHeight, svgWidth)/2 * 0.7;
+            var hueRange = 150;
+            var circleOpacity = 0.4;
+            var frequencyThreshold = 185;
+            var strokeWidth = 5;
+            
+            var eclipseFrequencyData = new Uint8Array(numCircles);
+            analyser.smoothingTimeConstant = 0.96;
+
+            //initial draw of circles
+
+            for(var j=0; j<numCircles; j++){
+                var hueValue = fillHue - hueRange/2 + (hueRange/numCircles) * j;
+                var saturationValue = Math.random() * 0.5 + 0.3;
+                var lightnessValue = Math.random() * 0.5 + 0.3;
+                var currentColour = d3.hsl(hueValue, saturationValue, lightnessValue);
+
+                svg
+                    .append("circle")
+                    .attr("cx", svgWidth/2)
+                    .attr("cy", svgHeight/2)
+                    .attr("r",circleRadius)
+                    .attr("fill",currentColour)
+                    .attr("fill-opacity",circleOpacity)
+            }
+
+            //draw static circle in the middle
+            svg
+                .append("circle")
+                .attr("cx", svgWidth/2)
+                .attr("cy", svgHeight/2)
+                .attr("r",circleRadius)
+                .attr("fill",backgroundColour)
+                .attr("fill-opacity",1)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",strokeWidth)
+
+            function renderEclipseChart(){
+
+                analyser.getByteFrequencyData(eclipseFrequencyData);
+
+                var t = performance.now();
+                var rotateSpeed = 400; //higher value gives slower rotation
+
+                requestAnimationFrame(renderEclipseChart);
+
+                svg.selectAll("circle")
+                    .data(eclipseFrequencyData)
+                    .attr("cy",function(d,i){
+                        return Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold) * maxShift + svgHeight/2;
+                    })
+                    .attr("transform",function(d,i){
+                        return "rotate("+(i * 360/numCircles + (180+t/rotateSpeed))+" "+svgWidth/2+" "+svgHeight/2+")";
+                    })
+
+            }
+
+            renderEclipseChart();
+
+
+
 
         }
 
