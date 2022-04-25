@@ -4624,7 +4624,7 @@ function runVisualization() {
             analyser.smoothingTimeConstant = 0.95;
 
             //line inputs
-            var numLines = 100;
+            var numLines = 80;
             
             var minLinePoints = 30;
             var maxLinePoints = 120;
@@ -4638,6 +4638,7 @@ function runVisualization() {
             var lineOpacity = 0.45;
 
             //circle inputs
+            var numCircles = 17;
             var stepLength = cellWidth * 0.15;
 
             var maxCircleSize = Math.min(svgHeight, svgWidth)/2 * 0.2;
@@ -4648,7 +4649,6 @@ function runVisualization() {
 
             var circlePositionArray = [];
 
-            var numCircles = 18;
             var lilyPadFrequencyData = new Uint8Array(numCircles);
 
             //clear the background on refresh
@@ -4725,8 +4725,6 @@ function runVisualization() {
                     .attr("r",6)
                     .attr("fill",strokeColour)
                 */
-
-    
                 for(var j=0; j<numPoints; j++){
                     
                     if(previousLineX > svgWidth || previousLineX < 0 || previousLineY > svgHeight || previousLineY < 0){
