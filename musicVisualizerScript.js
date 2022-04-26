@@ -88,19 +88,12 @@ var isAudioPlaying = false;
 var intervals = [];
 
 //Visualization Inputs
-var barPadding = 1;
-var numBars = 400;
+
 var numCircles = 140;
 var circlesCols = 20;
 var circlesRows = numCircles / circlesCols;
 var circlesBottomMargin = svgHeight * 0.08;
 
-var numDancingCircles = 40;
-var dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
-
-var wavesRows = 8;
-var wavesCols = 3;
-var wavesData = d3.range(1, wavesRows);
 
 var wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
 
@@ -114,10 +107,7 @@ var numSpiralCircles = 2000;
 var activeCircleSpacing = 12;
 var numActiveCircles = Math.floor(numSpiralCircles / activeCircleSpacing);
 
-var barsFrequencyData = new Uint8Array(numBars);
 var circlesFrequencyData = new Uint8Array(numCircles);
-var dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
-var wavesFrequencyData = new Uint8Array(wavesRows);
 var wireFrequencyData = new Uint8Array(1);
 var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 var ringsFrequencyData = new Uint8Array(numRings);
@@ -646,19 +636,11 @@ function runVisualization() {
     //reduce shape size on small screens & mobile devices
 
     if(svgWidth < 500){
-        barPadding = 0;
-        numBars = 200;
+
         numCircles = 140;
         circlesCols = 20;
         circlesRows = numCircles / circlesCols;
         circlesBottomMargin = svgHeight * 0.05;
-    
-        numDancingCircles = 40;
-        dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
-    
-        wavesRows = 8;
-        wavesCols = 3;
-        wavesData = d3.range(1, wavesRows);
     
         wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
     
@@ -666,10 +648,7 @@ function runVisualization() {
         joyPlotRows = 3;
         joyPlotCols = joyPlotN / joyPlotRows;
     
-        barsFrequencyData = new Uint8Array(numBars);
         circlesFrequencyData = new Uint8Array(numCircles);
-        dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
-        wavesFrequencyData = new Uint8Array(wavesRows);
         wireFrequencyData = new Uint8Array(1);
         joyPlotFrequencyData = new Uint8Array(joyPlotN);
     
@@ -946,12 +925,17 @@ function runVisualization() {
         else if(visualizationChoice == "dancingCircles"){
             console.log("Run dancing circles visualization");
 
+            var numDancingCircles = 40;
+            var dancingCirclesData = d3.range(0, 2 * Math.PI, 2 * Math.PI / numDancingCircles);
+            var dancingCirclesFrequencyData = new Uint8Array(numDancingCircles);
+            var frequencyThreshold = 150;
+
             var maxCircleSize = Math.min(svgWidth, svgHeight) * 0.06;
     
-            var count = d3.selectAll("circle").size()
+            //var count = d3.selectAll("circle").size()
             //console.log("# of circles: "+count);
     
-            analyser.smoothingTimeConstant = 0.92;
+            analyser.smoothingTimeConstant = 0.90;
     
             svg.selectAll("circle")
                 .data(dancingCirclesData)
@@ -961,7 +945,7 @@ function runVisualization() {
                 .attr("stroke", strokeColour)
                 .attr("fill-opacity", 0.65);
         
-            count = d3.selectAll("circle").size()
+            //count = d3.selectAll("circle").size()
             //console.log("# of circles: "+count);
     
             // Continuously loop and update chart with frequency data.
@@ -979,7 +963,9 @@ function runVisualization() {
                 svg.selectAll("circle")
                     .attr('r', function(d, i) {
                         if(visualizationChoice == "dancingCircles"){
-                            return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.91) - (62*shapeSizeMultiplier) ));
+                            //return Math.min(maxCircleSize, Math.max(0, Math.pow(dancingCirclesFrequencyData[i] * volumeMultiplier * shapeSizeMultiplier,0.91) - (62*shapeSizeMultiplier) ));
+                            return Math.max(0, (dancingCirclesFrequencyData[i]-frequencyThreshold) / (255-frequencyThreshold)) * maxCircleSize;
+
                         } else {
                             return 0;
                         }
@@ -993,8 +979,16 @@ function runVisualization() {
         
         else if(visualizationChoice == "waves"){
             console.log("Run waves visualization");
+
+            var barPadding = 1;
+            var numBars = 120;
+            var barsFrequencyData = new Uint8Array(numBars);
+
+            var wavesRows = 8;
+            var wavesCols = 3;
+            var wavesData = d3.range(1, wavesRows);
     
-            analyser.smoothingTimeConstant = 0.92;
+            analyser.smoothingTimeConstant = 0.88;
     
             var g = svg.selectAll("g")
                 .data(wavesData)
@@ -1029,32 +1023,18 @@ function runVisualization() {
     
                 // Update d3 chart with new data.        
                 var t = performance.now();
-                //var t = d3.now();
-                //console.log("animate -- d3.now() = "+d3.now());
     
                 paths.attr("d", function(r) {
                     return d3.area()
                         .curve(d3.curveBasis)
                         .y0(svgHeight)
                         .y1(function(d, i) {
-                            var bounce = 0;
-                            //bounce = Math.pow(wavesFrequencyData[i],0.70)*10;
-                        
-                            return 600 * (i % 2) - 150 + 20 * Math.sin(r + t / 1500000) - bounce;
+                            return 600 * (i % 2) - 150 + 20 * Math.sin(r + t / 25000);
                         })
-                        .x(function(d) { return (r * t / 20) % (svgWidth / (wavesCols - 2)) + d * svgWidth / (wavesCols - 1); })
+                        .x(function(d) { return (r * t / 34) % (svgWidth / (wavesCols - 2)) + d * svgWidth / (wavesCols - 1); })
                         (d3.range(-3, wavesCols + 2));
                 });
-    
-                /*
-                svg.selectAll("path")
-                .attr('fill-opacity', function(d, i) {
-                    return 0.25;
-                    //return 0.01 + wavesFrequencyData[i]/600;
-                    //return wavesFrequencyData[i]/2000;                
-                });
-                */
-    
+
                 svg.selectAll('rect')
                     .data(barsFrequencyData)
                     .attr('y', function(d) {
@@ -4830,7 +4810,7 @@ function runVisualization() {
         else if(visualizationChoice == "rainbowRoad"){
             console.log("Run rainbowRoad visualization");
     
-            analyser.smoothingTimeConstant = 0.94;
+            analyser.smoothingTimeConstant = 0.86;
 
             var numPassiveCols = 2;
             var numActiveCols = 24;
@@ -4841,9 +4821,9 @@ function runVisualization() {
             var numPaths = 12;
             var pathOffset = svgHeight * 0.05;
             var initialOffset = -svgHeight * 0.2;
-            var baselineFrequency = 255/2;
+            var baselineFrequency = 160;
 
-            var hueRange = 80;
+            var hueRange = 120;
     
             var yarnFrequencyData = new Uint8Array(numActiveCols);
             var chartData = [];
@@ -4859,7 +4839,7 @@ function runVisualization() {
                             return d3.hsl(fillHue - hueRange/2 + (j/numPaths) * hueRange, 0.6, 0.5);
                         }
                     })
-                    .attr("stroke", "white")
+                    .attr("stroke", backgroundColour)
                     .attr("stroke-width", strokeWidth)
                     .attr("d", d3.area()
                         .x(function(d,i) {
@@ -4940,7 +4920,7 @@ function findYatX(x, linePath) {
 
 function animateDancingCircles(){
 
-    var t = performance.now();
+    var t = performance.now() + 100000;
     //var t = d3.now();
     //console.log("animate -- d3.now() = "+d3.now());
 
