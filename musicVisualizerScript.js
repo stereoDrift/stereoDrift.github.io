@@ -4837,9 +4837,9 @@ function runVisualization() {
             var numTotalCols = numPassiveCols + numActiveCols;
     
             var strokeWidth = 0.3;
-            var heightRange = svgHeight * 0.40;
+            var heightRange = svgHeight * 0.45;
             var numPaths = 12;
-            var pathOffset = svgHeight * 0.06;
+            var pathOffset = svgHeight * 0.05;
             var initialOffset = -svgHeight * 0.2;
             var baselineFrequency = 255/2;
 
