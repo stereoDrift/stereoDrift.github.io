@@ -4624,7 +4624,7 @@ function runVisualization() {
             analyser.smoothingTimeConstant = 0.95;
 
             //line inputs
-            var numLines = 80;
+            var numLines = 200;
             
             var minLinePoints = 30;
             var maxLinePoints = 120;
@@ -4645,7 +4645,7 @@ function runVisualization() {
             var maxStrokeWidth = 9;
             var circleSize = 20;
             var sizeExponent = 1;
-            var frequencyThreshold = 195;
+            var frequencyThreshold = 185;
 
             var circlePositionArray = [];
 
@@ -4787,6 +4787,7 @@ function runVisualization() {
             function renderLilyPadChart() {
                 
                 analyser.getByteFrequencyData(lilyPadFrequencyData);
+
                 requestAnimationFrame(renderLilyPadChart);
 
                 for(var j=0; j<numCircles; j++){
@@ -4826,6 +4827,91 @@ function runVisualization() {
             
         }
 
+        else if(visualizationChoice == "rainbowRoad"){
+            console.log("Run rainbowRoad visualization");
+    
+            analyser.smoothingTimeConstant = 0.94;
+
+            var numPassiveCols = 2;
+            var numActiveCols = 24;
+            var numTotalCols = numPassiveCols + numActiveCols;
+    
+            var strokeWidth = 0.3;
+            var heightRange = svgHeight * 0.40;
+            var numPaths = 12;
+            var pathOffset = svgHeight * 0.06;
+            var initialOffset = -svgHeight * 0.2;
+            var baselineFrequency = 255/2;
+
+            var hueRange = 80;
+    
+            var yarnFrequencyData = new Uint8Array(numActiveCols);
+            var chartData = [];
+    
+            for (var j=0; j<numPaths; j++){
+                svg.append("path")
+                    .datum(chartData)
+                    .attr("id","path"+j)
+                    .attr("fill", function(d,i){
+                        if(j == (numPaths-1)){
+                            return backgroundColour;
+                        } else {
+                            return d3.hsl(fillHue - hueRange/2 + (j/numPaths) * hueRange, 0.6, 0.5);
+                        }
+                    })
+                    .attr("stroke", "white")
+                    .attr("stroke-width", strokeWidth)
+                    .attr("d", d3.area()
+                        .x(function(d,i) {
+                            return svgWidth/(numTotalCols-1) * i;
+                        })
+                        .y0(svgHeight)
+                        .y1(function(d) {
+                            return svgHeight - (initialOffset + pathOffset*(numPaths-j) + d/255 * heightRange);
+                        })
+                        .curve(d3.curveBasis)
+                    );
+            }
+        
+            // Continuously loop and update chart with frequency data.
+            function renderYarnChart() {
+                
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(yarnFrequencyData);
+    
+                for(var i=0; i<numTotalCols; i++){
+
+                    if(i < numPassiveCols/2){
+                        chartData[i] = baselineFrequency;
+                    } else if(i < numPassiveCols/2 + numActiveCols){
+                        chartData[i] = yarnFrequencyData[i-numPassiveCols/2];                    
+                    } else {
+                        chartData[i] = baselineFrequency;
+                    }
+                }
+    
+                requestAnimationFrame(renderYarnChart);
+
+                for(var j=0; j<numPaths; j++){
+                    d3.select("#path"+j)
+                        .attr("d", d3.area()
+                            .x(function(d,i) {
+                                return svgWidth/(numTotalCols-1) * i;
+                            })
+                            .y0(svgHeight)
+                            .y1(function(d) {
+                                return svgHeight - (initialOffset + pathOffset*(numPaths-j) + d/255 * heightRange);
+                            })
+                            .curve(d3.curveBasis)
+                        );
+                }
+            }
+    
+            // Run the loop
+            renderYarnChart();
+    
+    
+        }
 
     } else{
         console.log("Audio not playing");
