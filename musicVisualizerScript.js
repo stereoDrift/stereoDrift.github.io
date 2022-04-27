@@ -4810,7 +4810,7 @@ function runVisualization() {
         else if(visualizationChoice == "rainbowRoad"){
             console.log("Run rainbowRoad visualization");
     
-            analyser.smoothingTimeConstant = 0.86;
+            analyser.smoothingTimeConstant = 0.9;
 
             var numPassiveCols = 2;
             var numActiveCols = 24;
@@ -4891,6 +4891,80 @@ function runVisualization() {
             renderYarnChart();
     
     
+        }
+
+        else if(visualizationChoice == "changingLanes"){
+            var numDots = 60;
+            var dotFrequencyData = new Uint8Array(numDots);
+            var totalDotWidth = svgWidth*0.9;
+            var minDotRadius = 5;
+            var maxDotRadius = totalDotWidth/(numDots/2) * 2;
+            var dotRadiusRange = maxDotRadius - minDotRadius;
+            var maxHeightShift = svgHeight/2 * 0.75;
+            var frequencyThreshold = 175;
+            var dotOpacity = 1;
+            var strokeWidth = 2;
+            var widthMargin = (svgWidth - totalDotWidth)/2;
+
+            analyser.smoothingTimeConstant = 0.90;
+            var animationSpeed = 2000; //higher value gives slower animation
+
+            //place initial dots
+            for(var j=0; j<numDots; j++){
+                svg
+                    .append("circle")
+                    .attr("r",maxDotRadius)
+                    .attr("cx",widthMargin + totalDotWidth/(numDots-1) * j)
+                    .attr("cy",svgHeight/2)
+                    .attr("fill",function(){
+                        if(j%2==0){
+                            return fillColour;
+                        } else{
+                            return strokeColour;
+                        }
+                    })
+                    .attr("fill-opacity",dotOpacity)
+                    .attr("stroke",function(){
+                        if(j%2==0){
+                            return strokeColour;
+                        } else{
+                            return fillColour;
+                        }
+                    })
+                    .attr("stroke-width",strokeWidth)
+            }
+            
+            //animate
+            function renderDotWaveChart(){
+
+                var t = performance.now();
+                analyser.getByteFrequencyData(dotFrequencyData);
+
+                requestAnimationFrame(renderDotWaveChart);
+
+                svg.selectAll("circle")
+                    .data(dotFrequencyData)    
+                    .attr("cy",function(d,i){
+                        //return svgHeight/2 + Math.sin(t/animationSpeed * (numDots/2+0.5-i)) * maxHeightShift;
+                        //return svgHeight/2 + Math.sin(t/animationSpeed) * maxHeightShift;
+                        //return svgHeight/2 + Math.sin(t/animationSpeed + (Math.PI*2)/(numDots-1)*i) * maxHeightShift;
+
+                        if(i%2==0){
+                            return svgHeight/2 + Math.sin(t/animationSpeed + (Math.PI*2)/(numDots-1)*i) * maxHeightShift;
+                        } else {
+                            return svgHeight/2 + Math.cos(t/animationSpeed + (Math.PI*2)/(numDots-1)*i + Math.PI * 0.5) * maxHeightShift;
+                        }
+                    })
+                    .attr("r",function(d,i){
+                        return minDotRadius + Math.max(0, (d-frequencyThreshold)/(255-frequencyThreshold) * dotRadiusRange);
+                    })
+
+            }
+
+            renderDotWaveChart();
+
+
+
         }
 
     } else{
