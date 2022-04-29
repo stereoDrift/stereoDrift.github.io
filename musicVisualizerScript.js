@@ -134,6 +134,7 @@ var palette14 = ["#FFFF00", "#0000FF", "#FF0000"]; //primary
 var palette15 = ["#361944", "#86BFE7", "#B09060"]; //euphoria
 var palette16 = ["#02190C", "#900C3F", "#FF7C60"]; //emerald
 var palette17 = ["#141415", "#9F978D", "#B5C8BA"]; //slate
+var palette18 = ["#FFB3A7", "#C93756", "#F7665A"]; //crimson
 
 
 var backgroundColour;
@@ -724,6 +725,10 @@ function runVisualization() {
         backgroundColour = palette17[0];
         fillColour = palette17[1];
         strokeColour = palette17[2];
+    } else if(colourChoice == "Crimson"){
+        backgroundColour = palette18[0];
+        fillColour = palette18[1];
+        strokeColour = palette18[2];
     }
 
 
@@ -741,6 +746,9 @@ function runVisualization() {
     var backgroundB = parseInt(backgroundColour.substr(5,2), 16);
 
     var backgroundHue = rgbToHsl(backgroundR, backgroundG, backgroundB)[0] * 360;
+
+    var fillHSL = d3.hsl(fillColour);
+    var fillHexArray = [fillHSL.h, fillHSL.s, fillHSL.l];
 
     var backgroundHSL = d3.hsl(backgroundColour);
     //console.log(backgroundHSL);
@@ -4962,9 +4970,217 @@ function runVisualization() {
             }
 
             renderDotWaveChart();
+        }
+
+        else if(visualizationChoice == "seigaiha"){
+
+            var numCols = 6;
+            var initialRadius = svgWidth / (numCols-1) / 2;
+            var maxRadius = initialRadius * 1.5;
+            var radiusRange = maxRadius - initialRadius;
+            var radiusFactor = 0.7; //radius percentage for each nested circle
+            var numRows = Math.ceil(svgHeight / initialRadius * 2) + 2;
+            var circlesPerSpot = 5;
+            var numCircles = numCols * numRows * circlesPerSpot;
+            var numActiveCircles = numCols * numRows;
+            var strokeWidth = 2.5;
+            var frequencyThreshold = 120;
+            var circleOpacity = 1;
+            var spotCount = 0;
+            var hueRange = 150;
+
+            analyser.smoothingTimeConstant = 0.9;
+
+            var frequencyData = new Uint8Array(numActiveCircles);
+
+            //initial draw
+            for(var i=0; i<numRows; i++){
+                for(var j=0; j<numCols; j++){
+
+                    var xVal;
+                    var yVal = initialRadius/2 * i;
+
+                    if(i%2 == 0){
+                        xVal = initialRadius*2 * j;
+                    } else {
+                        if(j==numCols-1){
+                            break;
+                        }
+                        xVal = initialRadius*2 * j + initialRadius;
+                    }
+
+                    for(var k=0; k<circlesPerSpot; k++){
+                        svg.append("circle")
+                            .attr("r",function(){
+                                return initialRadius * Math.pow(radiusFactor, k);
+                            })    
+                            .attr("cx",xVal)
+                            .attr("cy",yVal)
+                            .attr("fill",fillColour)
+                            .attr("fill-opacity",circleOpacity)
+                            .attr("stroke",strokeColour)
+                            .attr("stroke-width",strokeWidth)
+                            .attr("class",function(){
+                                if(k==0){
+                                    return "activeCircle spot"+spotCount;
+                                } else {
+                                    return "passiveCircle spot"+spotCount;
+                                }
+                            })
+                    }
+
+                    spotCount++;
+                }
+            }
+
+            //animate
+
+            function animateChart(){
+
+                analyser.getByteFrequencyData(frequencyData);
+                requestAnimationFrame(animateChart);
+
+                for(var j=0; j<numActiveCircles; j++){
+                    svg.selectAll(".spot"+j)
+                    .attr("fill",function(d,i){
+                        if(colourChoice=="Noir"){
+                            return d3.hsl(150,0,Math.max(0,(frequencyData[j]-frequencyThreshold))/(255-frequencyThreshold));
+                        } else {
+                            return d3.hsl(fillHexArray[0]-hueRange/2+(Math.max(0,frequencyData[j]-frequencyThreshold))/(255-frequencyThreshold)*hueRange,Math.min(0.8,Math.max(0.5,fillHexArray[1])),Math.min(0.8,Math.max(0.5,fillHexArray[2])));
+                        }
+                    })
+                }
+                
+            }
+            animateChart();
+        }
+
+        else if(visualizationChoice == "ripples"){
+
+            var numCols = 5;
+            var initialRadius = svgWidth / (numCols-1) / 2;
+            var maxRadius = initialRadius * 1;
+            var radiusRange = maxRadius - initialRadius;
+            var maxRadiusIncrease = 0.4; //max percentage increase in active circle radius
+            var radiusFactor = 0.75; //radius percentage for each nested circle
+            var numRows = Math.ceil(svgHeight / initialRadius * 2) + 2;
+            var maxCirclesPerSpot = 10;
+            var numCircles = numCols * numRows * circlesPerSpot;
+            var numActiveCircles = numCols * numRows;
+            var strokeWidth = 2;
+            var frequencyThreshold = 120;
+            var circleOpacity = 0;
+            var initialStrokeOpacity = 0.25;
+            var probabilityNilOpacity = 0.6;
+            var maxFillOpacity = 0.3;
+            var fadeInTime = 120; //seconds to fade in inner circles
+            var fadeOutTime = 120; //seconds to fade out inner circles
+            var startTime = performance.now();
+            var activeCircleRadiusArray = [];
+
+            analyser.smoothingTimeConstant = 0.88;
+
+            var frequencyData = new Uint8Array(numActiveCircles);
+
+            //initial draw
+            for(var i=0; i<numRows; i++){
+                for(var j=0; j<numCols; j++){
+
+                    var circlesPerSpot = Math.ceil(Math.random()*maxCirclesPerSpot);
+                    var xVal;
+                    var yVal = svgHeight - (initialRadius/2 * i);
+                    //var yVal = (initialRadius/2 * i);
+
+                    if(i%2 == 0){
+                        xVal = initialRadius*2 * j;
+                    } else {
+                        if(j==numCols-1){
+                            break;
+                        }
+                        xVal = initialRadius*2 * j + initialRadius;
+                    }
+
+                    for(var k=0; k<circlesPerSpot; k++){
+                        svg.append("circle")
+                            .attr("r",function(){
+                                var currentRadius = initialRadius * Math.pow(radiusFactor, k);
+                                if(k==(circlesPerSpot-1)){
+                                    activeCircleRadiusArray.push(currentRadius);
+                                }
+                                return currentRadius;
+                            })    
+                            .attr("cx",xVal)
+                            .attr("cy",yVal)
+                            .attr("fill",fillColour)
+                            .attr("fill-opacity",0)
+                            .attr("stroke",strokeColour)
+                            .attr("stroke-opacity",function(){
+                                var randomNum = Math.random();
+                                if(randomNum < probabilityNilOpacity){
+                                    return 0;
+                                } else {
+                                    return Math.random() * initialStrokeOpacity;
+                                }
+                            })
+                            .attr("stroke-width",strokeWidth)
+                            .attr("class",function(){
+                                if(k==(circlesPerSpot-1)){
+                                    return "activeCircle";
+                                } else {
+                                    return "passiveCircle";
+                                }
+                            })
+                         
+                    }
+                }
+            }
+
+            //animate
+
+            function animateChart(){
+
+                analyser.getByteFrequencyData(frequencyData);
+                var t = performance.now();
+
+                requestAnimationFrame(animateChart);
+
+                svg.selectAll(".activeCircle")
+                    .data(frequencyData)
+                    .attr("r",function(d,i){
+                        return activeCircleRadiusArray[i] + (activeCircleRadiusArray[i] * maxRadiusIncrease * (Math.max(d-frequencyThreshold,0) / (255-frequencyThreshold)));
+                    })
+                    .attr("stroke-opacity",function(d,i){
+                        return Math.max(d+30-frequencyThreshold,0) / (255-frequencyThreshold);
+                    })
+                    .attr("fill-opacity",function(d,i){
+                        return Math.max(d-frequencyThreshold,0) / (255-frequencyThreshold) * maxFillOpacity;
+                    })
 
 
+                    /*
+                    .attr("fill",function(d,i){
+                        if(d>frequencyThreshold){
+                            return strokeColour;
+                        } else{
+                            return activeCircleFillArray[i];
+                        }
+                    })
+                    */
 
+                /*
+                svg.selectAll(".passiveCircle")
+                    .attr("fill-opacity",function(){
+                        var elapsedSeconds = (t-startTime)/1000;
+
+                        if(elapsedSeconds < fadeInTime){
+                            return elapsedSeconds / fadeInTime;
+                        } else {
+                            return Math.max(0,(1-(elapsedSeconds-fadeInTime)/fadeOutTime));
+                        }
+                    });
+                */
+            }
+            animateChart();
         }
 
     } else{
