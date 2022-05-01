@@ -5183,6 +5183,127 @@ function runVisualization() {
             animateChart();
         }
 
+        else if(visualizationChoice == "triangles"){
+            var numCols = 12;
+            var numRows = 18;
+            var numCells = numCols * numRows;
+            var initialCellWidth = svgWidth / numCols;
+            var initialCellHeight = svgHeight / numRows;
+            var maxWidthShift = initialCellWidth * 0.6;
+            var maxHeightShift = initialCellHeight * 0.6;
+            var hueRange = 150;
+            var frequencyData = new Uint8Array(numCells);
+            var animationSpeed = 4000; //higher value gives slower animation
+            var strokeWidth = 0;
+            var frequencyThreshold = 90;
+            analyser.smoothingTimeConstant = 0.9;
+
+            var lineFunction = d3.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+                //.curve(d3.curveCatmullRomClosed)
+                //.curve(d3.curveBasisClosed)
+
+            //initial draw
+            for(var i=0; i<numRows; i++){
+                for(var j=0; j<numCols; j++){
+                    
+                    /*
+                    //draw grid cells
+                    svg.append("rect")
+                        .attr("width",initialCellWidth)
+                        .attr("height",initialCellHeight)
+                        .attr("x",initialCellWidth * j)
+                        .attr("y",initialCellHeight * i)
+                        .attr("fill",d3.hsl(fillHue - hueRange/2 + Math.random() * hueRange, 0.6,0.5))
+                        .attr("fill-opacity",0.1)
+                        .attr("stroke",strokeColour)
+                        .attr("stroke-width",strokeWidth)
+                        .attr("id","cell"+i+j)
+                    */
+
+                    var currentPolygonPoints = [];
+
+                    currentPolygonPoints.push({x: initialCellWidth*j, y: initialCellHeight *(i+1)});
+                    currentPolygonPoints.push({x: initialCellWidth*(j+1), y: initialCellHeight *(i+1)});
+                    currentPolygonPoints.push({x: initialCellWidth*(j+0.5), y: initialCellHeight *(i)});
+                    
+                    //console.log(currentPolygonPoints);
+                    
+                    svg
+                        .append('path')
+                        .datum(currentPolygonPoints)
+                        .attr('d', lineFunction)
+                        .attr('fill', fillColour)
+                        .attr("id","trianglerow"+i+"col"+j)
+                    
+                }
+            }
+
+            //animate
+
+            function animateChart(){
+                
+                var t = performance.now();
+                analyser.getByteFrequencyData(frequencyData);
+
+                requestAnimationFrame(animateChart);
+
+                var previousHeightSum = 0;
+                var heightSum = 0;
+
+                for(var i=0; i<numRows; i++){
+
+                    var currentHeight = initialCellHeight + maxHeightShift * Math.cos(t/(animationSpeed/1) + i/(numRows) * Math.PI * 2);
+                    heightSum = previousHeightSum + currentHeight;
+
+                    var previousWidthSum = 0;
+                    var widthSum = 0;
+
+                    for(var j=0; j<numCols; j++){
+
+                        var currentWidth = initialCellWidth + maxWidthShift * Math.sin(t/(animationSpeed/2) + j/(numCols) * Math.PI * 2);
+                        //var currentWidth = initialCellWidth;
+                        widthSum = previousWidthSum + currentWidth;
+
+                        /*
+                        //update grid
+                        svg.select("#cell"+i+j)
+                            .attr("fill",d3.hsl(fillHue - hueRange/2 + frequencyData[i*numRows+j]/255 * hueRange, 0.6,0.5))    
+                            .attr("x",previousWidthSum)
+                            .attr("y",previousHeightSum)
+                            .attr("width",currentWidth)
+                            .attr("height",currentHeight)
+                        */
+                        
+                        var currentPolygonPoints = [];
+                        var trianglePointX = previousWidthSum + +currentWidth/2 + currentWidth/2 * Math.sin(t/(animationSpeed/4) + (i) * Math.PI*0.15 + j*Math.PI*0.05);
+
+                        currentPolygonPoints.push({x: previousWidthSum, y: heightSum});
+                        currentPolygonPoints.push({x: widthSum, y: heightSum});
+                        currentPolygonPoints.push({x: trianglePointX, y: previousHeightSum});
+                                      
+                        
+                        svg.select("#trianglerow"+i+"col"+j)
+                            .datum(currentPolygonPoints)
+                            .attr("fill",d3.hsl(fillHue - hueRange/2 + Math.max(0,frequencyData[i*numCols+j]-frequencyThreshold)/(255-frequencyThreshold) * hueRange, 0.6,0.5))    
+                            .attr('d', lineFunction)
+                            
+                        previousWidthSum = widthSum;
+                    }
+
+                    previousHeightSum = heightSum;
+                }
+
+
+
+            }
+
+            animateChart();
+
+
+        }
+
     } else{
         console.log("Audio not playing");
 
