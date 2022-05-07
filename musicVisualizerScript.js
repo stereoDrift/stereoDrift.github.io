@@ -4033,7 +4033,9 @@ function runVisualization() {
             var RESOLUTION = 2;
             var hueRange = 120;
 
-            var pixel_size = Math.ceil(svgWidth / RESOLUTION);
+            //var pixel_size = Math.ceil(svgWidth / RESOLUTION);
+            var pixel_width = Math.ceil(svgWidth / RESOLUTION);
+            var pixel_height = Math.ceil(svgHeight / RESOLUTION);
             var num_pixels = GRID_SIZE / RESOLUTION;
 
             var pixelCount = 0;
@@ -4059,9 +4061,9 @@ function runVisualization() {
                     svg
                         .append("rect")
                         .attr("x",x / GRID_SIZE * svgWidth)
-                        .attr("y",svgHeight - (y / GRID_SIZE * svgWidth))
-                        .attr("width",pixel_size)
-                        .attr("height",pixel_size)
+                        .attr("y",svgHeight - (y / GRID_SIZE * svgHeight))
+                        .attr("width",pixel_width)
+                        .attr("height",pixel_height)
                         .attr("fill",currentColour)
                         .attr("fill-opacity",1.0)
 
@@ -5184,8 +5186,8 @@ function runVisualization() {
         }
 
         else if(visualizationChoice == "triangles"){
-            var numCols = 12;
-            var numRows = 18;
+            var numCols = 8;
+            var numRows = 36;
             var numCells = numCols * numRows;
             var initialCellWidth = svgWidth / numCols;
             var initialCellHeight = svgHeight / numRows;
@@ -5286,7 +5288,7 @@ function runVisualization() {
                         
                         svg.select("#trianglerow"+i+"col"+j)
                             .datum(currentPolygonPoints)
-                            .attr("fill",d3.hsl(fillHue - hueRange/2 + Math.max(0,frequencyData[i*numCols+j]-frequencyThreshold)/(255-frequencyThreshold) * hueRange, 0.6,0.5))    
+                            .attr("fill",d3.hsl(fillHue - hueRange/2 + Math.max(0,frequencyData[i*numCols+j]-frequencyThreshold)/(255-frequencyThreshold) * hueRange, 0.7,0.5))    
                             .attr('d', lineFunction)
                             
                         previousWidthSum = widthSum;
@@ -5294,13 +5296,76 @@ function runVisualization() {
 
                     previousHeightSum = heightSum;
                 }
+            }
+            animateChart();
+        }
 
+        else if(visualizationChoice == "hoodoos"){
+            var startingTime = performance.now();
+            var numCols = 7;
+            var circlesPerCol = 18;
+            var numCircles = numCols * circlesPerCol;
+            var yMargin = svgHeight * 0.12;
+            var xMargin = svgWidth * 0.12;
+            var yOffset = (svgHeight - yMargin*2) / (circlesPerCol-1);
+            var xOffset = (svgWidth - xMargin*2) / (numCols-1);
+            var baseRadius = Math.min(svgHeight,svgWidth)/2 * 0.1;
+            var radiusRange = Math.min(svgHeight,svgWidth)/2 * 0.04;
+            var animationSpeed = 5000; //higher amount gives slower animation
+            var frequencyData = new Uint8Array(numCircles);
+            var hueRange = 100;
+            var frequencyThreshold = 130;
+            analyser.smoothingTimeConstant = 0.92;
+            var minOpacity = 1;
 
+            //initial draw
+            for(var i=0; i<numCols; i++){
+                for(var j=0; j<circlesPerCol; j++){
+                    svg.append("circle")
+                        .attr("r",baseRadius)
+                        .attr("cx",xMargin + i * xOffset)
+                        .attr("cy",svgHeight - (yMargin + j * yOffset))
+                        .attr("fill",fillColour)
+                        .attr("stroke",backgroundColour)
+                }
+            }
 
+            //animate
+            function animateChart(){
+                var elapsedTime = performance.now() - startingTime;
+                analyser.getByteFrequencyData(frequencyData);
+
+                minOpacity = 1 - (elapsedTime/1000/180); //min opacity declines from 1 to 0 in 180 seconds
+
+                requestAnimationFrame(animateChart);
+
+                svg.selectAll("circle")
+                    .data(frequencyData)
+                    .attr("r",function(d,i){
+                        var currentRow = i%circlesPerCol;
+                        var currentCol = Math.floor(i/circlesPerCol);
+                        var currentRadius = baseRadius;
+                        
+                        if(currentCol%2 == 0){
+                            currentRadius = baseRadius + radiusRange * Math.sin((elapsedTime/animationSpeed) * Math.PI*2 + currentRow-(circlesPerCol/2) * Math.PI*2);
+                        }
+                        else {
+                            currentRadius = baseRadius + radiusRange * Math.sin((elapsedTime/animationSpeed) * Math.PI*2 + currentRow-(circlesPerCol/2) * Math.PI*2 + Math.PI);
+                        }
+
+                        return currentRadius;
+                    })
+                    .attr("fill",function(d,i){
+                        return d3.hsl(fillHue - hueRange/2 + hueRange * Math.max(0,(d-frequencyThreshold)/(255-frequencyThreshold)),0.7,(d-frequencyThreshold)/(255-frequencyThreshold));
+                        //return d3.hsl(fillHue - hueRange/2 + hueRange * Math.max(0,(d-frequencyThreshold)/(255-frequencyThreshold)),Math.max((d-frequencyThreshold),0)/(255-frequencyThreshold)+0.3,0.5);
+                        //return d3.hsl(backgroundHexArray[0]+Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold)*hueRange,Math.min(0.7,Math.max(0.3,backgroundHexArray[1])),Math.min(0.7,Math.max(0.3,backgroundHexArray[2])))
+                    })
+                    .attr("fill-opacity",function(d,i){
+                        return minOpacity + Math.max(0,(d-frequencyThreshold))/(255-frequencyThreshold);
+                    })
             }
 
             animateChart();
-
 
         }
 
