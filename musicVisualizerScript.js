@@ -501,12 +501,15 @@ function useMicrophone(){
 
         navigator.mediaDevices.getUserMedia ({
             audio: {
+                /*
                 latency: 0.02,
                 echoCancellation: false,
                 noiseSuppression: false,
                 autoGainControl: false,
                 mozNoiseSuppression: false,
-                mozAutoGainControl: false},
+                mozAutoGainControl: false
+                */
+            },
             video: false})
 
         .then(function(stream) {
@@ -761,6 +764,10 @@ function runVisualization() {
     var strokeB = parseInt(strokeColour.substr(5,2), 16);
 
     var strokeHue = rgbToHsl(strokeR, strokeG, strokeB)[0] * 360;
+
+    var strokeHSL = d3.hsl(strokeColour);
+    var strokeHexArray = [strokeHSL.h, strokeHSL.s, strokeHSL.l];
+
 
     //set background colour
     svgContainerDiv.style.backgroundColor = backgroundColour;
@@ -5369,11 +5376,341 @@ function runVisualization() {
 
         }
 
+        else if(visualizationChoice == "blinds"){
+            var numCols = 10;
+            var numRows = 10;
+            var numCells = numCols * numRows;
+            var initialCellWidth = svgWidth / numCols;
+            var initialCellHeight = svgHeight / numRows;
+            var maxWidthShift = initialCellWidth * 0.7;
+            var maxHeightShift = initialCellHeight * 0.7;
+            var hueRange = 150;
+            var frequencyData = new Uint8Array(numCells);
+            var animationSpeed = 6000; //higher value gives slower animation
+            var minStrokeWidth = 0.0;
+            var maxStrokeWidth = 5;
+            var frequencyThreshold = 140;
+            analyser.smoothingTimeConstant = 0.9;
+
+            var lineFunction = d3.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+                //.curve(d3.curveCatmullRomClosed)
+                //.curve(d3.curveBasisClosed)
+
+            //initial draw
+            for(var i=0; i<numRows; i++){
+                for(var j=0; j<numCols; j++){
+                    
+                    
+                    //draw grid cells
+                    svg.append("rect")
+                        .attr("width",initialCellWidth)
+                        .attr("height",initialCellHeight)
+                        .attr("x",initialCellWidth * j)
+                        .attr("y",svgHeight - (initialCellHeight * i))
+                        .attr("fill",fillColour)
+                        .attr("fill-opacity",1)
+                        .attr("stroke",strokeColour)
+                        .attr("stroke-width",minStrokeWidth)
+                        .attr("id","cell"+i+j)
+                    
+
+                        /*
+                    var currentPolygonPoints = [];
+
+                    currentPolygonPoints.push({x: initialCellWidth*j, y: initialCellHeight *(i+1)});
+                    currentPolygonPoints.push({x: initialCellWidth*(j+1), y: initialCellHeight *(i+1)});
+                    currentPolygonPoints.push({x: initialCellWidth*(j+0.5), y: initialCellHeight *(i)});
+                    
+                    //console.log(currentPolygonPoints);
+                    
+                    svg
+                        .append('path')
+                        .datum(currentPolygonPoints)
+                        .attr('d', lineFunction)
+                        .attr('fill', fillColour)
+                        .attr("id","trianglerow"+i+"col"+j)
+                        */
+                    
+                }
+            }
+
+            //animate
+
+            function animateChart(){
+                
+                var t = performance.now();
+                analyser.getByteFrequencyData(frequencyData);
+
+                requestAnimationFrame(animateChart);
+
+                var previousHeightSum = 0;
+                var heightSum = 0;
+
+                for(var i=0; i<numRows; i++){
+
+                    var currentHeight = initialCellHeight + maxHeightShift * Math.cos(t/(animationSpeed/1) + i/(numRows) * Math.PI * 2);
+                    heightSum = previousHeightSum + currentHeight;
+
+                    var previousWidthSum = 0;
+                    var widthSum = 0;
+
+                    for(var j=0; j<numCols; j++){
+
+                        var currentWidth = initialCellWidth + maxWidthShift * Math.sin(t/(animationSpeed/2) + j/(numCols) * Math.PI * 2);
+                        //var currentWidth = initialCellWidth;
+                        widthSum = previousWidthSum + currentWidth;
+
+                        var normalizedFrequencyValue = (frequencyData[i*numRows+j]-frequencyThreshold)/(255-frequencyThreshold); 
+
+                        
+                        //update grid
+                        svg.select("#cell"+i+j)
+                            .attr("fill",d3.hsl(fillHue - hueRange/2 + normalizedFrequencyValue * hueRange, normalizedFrequencyValue * 0.8,normalizedFrequencyValue * 0.8))   
+                            .attr("x",previousWidthSum)
+                            .attr("y",svgHeight - previousHeightSum - currentHeight)
+                            .attr("width",currentWidth)
+                            .attr("height",currentHeight)
+                            .attr("fill-opacity",Math.max(0,frequencyData[i*numRows+j]-frequencyThreshold)/(255-frequencyThreshold))
+                            .attr("stroke-width",minStrokeWidth + Math.max(0,frequencyData[i*numRows+j]-frequencyThreshold)/(255-frequencyThreshold) * maxStrokeWidth)
+                        
+                            /*
+                        
+                        var currentPolygonPoints = [];
+                        var trianglePointX = previousWidthSum + +currentWidth/2 + currentWidth/2 * Math.sin(t/(animationSpeed/4) + (i) * Math.PI*0.15 + j*Math.PI*0.05);
+
+                        currentPolygonPoints.push({x: previousWidthSum, y: heightSum});
+                        currentPolygonPoints.push({x: widthSum, y: heightSum});
+                        currentPolygonPoints.push({x: trianglePointX, y: previousHeightSum});
+                                      
+                        
+                        svg.select("#trianglerow"+i+"col"+j)
+                            .datum(currentPolygonPoints)
+                            .attr("fill",d3.hsl(fillHue - hueRange/2 + Math.max(0,frequencyData[i*numCols+j]-frequencyThreshold)/(255-frequencyThreshold) * hueRange, 0.7,0.5))    
+                            .attr('d', lineFunction)
+                        */
+
+                        previousWidthSum = widthSum;
+                    }
+
+                    previousHeightSum = heightSum;
+                }
+            }
+            animateChart();
+        }
+
+        else if(visualizationChoice == "dunes"){
+
+            var maxLinePoints = 2;
+            var numPoints = maxLinePoints;
+            var points = [];
+            var maxStrokeWidth = 0;
+
+            var minHeight = svgHeight * 0.25;
+            var heightRange = svgHeight * 0.5;
+            var shiftMultiplier = 90;
+            var minDotRadius = 3;
+            var maxDotRadius = 20;
+
+            var numDots = 125;
+            var frequencyThreshold = 110;
+
+            var frequencyData = new Uint8Array(numDots);
+
+            analyser.smoothingTimeConstant = 0.9;
+            
+            var maxWaveShift = svgHeight * 0.25;
+            var animationSpeed = 2500; //higher value gives slower animation
+
+            var centralYValArray = [];
+            var yShiftArray = [];
+
+            var numAreaPoints = 18;
+            var activePoints = [];
+
+            var numStaticDots = 3000;
+
+            var lineFunction = d3.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+                .curve(d3.curveNatural)
+
+            //define the initial dot path
+            for(var i=0; i<numPoints; i++){
+
+                var xVal = i/(numPoints-1) * (svgWidth);
+                
+                if(i == 0 || i == (numPoints-1)){
+                    var yVal = svgHeight/2;
+                } else {
+                    var yVal = svgHeight - (Math.random() * heightRange + minHeight);
+                }
+
+                points.push({"x": xVal, "y": yVal});
+            }
+
+            var path = svg
+                .append('path')
+                .datum(points)
+                .attr('d', lineFunction)
+                .attr('stroke', strokeColour)
+                .attr("stroke-width", Math.random() * maxStrokeWidth)
+                .attr('fill', 'none');
+
+                
+            // Add the area            
+            for(var i=0; i<numAreaPoints; i++){
+                var xVal = i/(numAreaPoints-1)*svgWidth;
+                var yVal = svgHeight - (svgHeight/2 + Math.sin(Math.PI*2/(numAreaPoints-1) * i) * maxWaveShift);
+                activePoints.push({ "x": xVal, "y": yVal });
+            }
+
+            //make defs and add the linear gradient
+            var lg = svg.append("defs").append("linearGradient")
+            .attr("id", "mygrad")//id of the gradient
+            .attr("x1", "0%")
+            .attr("x2", "0%")
+            .attr("y1", "0%")
+            .attr("y2", "100%")//since its a vertical linear gradient 
+        
+            lg.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", backgroundColour)//background colour at the top
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "100%")
+                .style("stop-color", fillColour)//white at the bottom
+                .style("stop-opacity", 1)
+
+
+            var activePath = svg.append("path")
+                .datum(activePoints)
+                .attr("fill",'url(#mygrad)')
+                //.attr("stroke", "white")
+                //.attr("stroke-width", 10)
+                //.attr('d', lineFunction)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return activePoints[i].x })
+                    .y0(svgHeight)
+                    .y1(function(d,i) { return activePoints[i].y })
+                    .curve(d3.curveNatural)
+                );
+                
+            //draw the static dot grain            
+            for(var i=0; i<numStaticDots; i++){
+                var xVal = i/(numStaticDots-1) * svgWidth;
+                var randParetoVal = paretoDistribution(svgHeight-(minHeight+heightRange),6); //higher alpha variable gives more clustering at the start
+                //console.log(randParetoVal);
+                var yVal = randParetoVal;
+
+                svg.append("circle")
+                    .attr("r",1)
+                    .attr("cx",xVal)
+                    .attr("cy",yVal)
+                    .attr("fill",backgroundColour)
+            }
+
+            //draw the active dots
+            for(var i=0; i<numDots; i++){
+
+                var xVal = i/(numDots-1) * (svgWidth);
+                var centralYVal = yValueForX(xVal);
+
+                var gaussRandomShift = randn_bm();
+                //var gaussRandomShift = 0;
+                var yShift = shiftMultiplier * gaussRandomShift;
+                
+                centralYValArray.push(centralYVal);
+                yShiftArray.push(yShift);
+
+                svg.append("circle")
+                    .attr("r",minDotRadius)
+                    .attr("cx",xVal)
+                    .attr("cy",centralYVal + yShift)
+                    .attr("fill",strokeColour)
+                    .attr("class","activeCircles")
+            }
+            
+            //helper function to locate the path y value at a given x value input
+            function yValueForX(xCor){
+                var x = xCor,
+                    pathEl = path.node(),
+                    pathLength = pathEl.getTotalLength(); 
+                    
+                var beginning = x, end = pathLength, target;
+                while (true) {
+                    target = Math.floor((beginning + end) / 2);
+                    pos = pathEl.getPointAtLength(target);
+                    if ((target === end || target === beginning) && pos.x !== x) {
+                        break;
+                    }
+                    if (pos.x > x)      end = target;
+                    else if (pos.x < x) beginning = target;
+                    else                break; //position found
+                }
+                
+                return pos.y;
+            }
+
+            //animation
+            function animateChart(){
+
+                activePoints = [];
+                var t = performance.now();
+
+                analyser.getByteFrequencyData(frequencyData);
+                requestAnimationFrame(animateChart);
+
+                svg.selectAll(".activeCircles")
+                    .attr("cy",function(d,i){                        
+                        var waveShift = Math.sin(t / animationSpeed + Math.PI*2 * (i/numDots-1)) * maxWaveShift;
+                        var currentYVal = svgHeight - (centralYValArray[i] + yShiftArray[i] * (Math.max(0,frequencyData[i]-frequencyThreshold) / (255-frequencyThreshold)) + waveShift); 
+                        return currentYVal;
+                    })
+                    .attr("r",function(d,i){
+                        return minDotRadius + (maxDotRadius-minDotRadius) * (Math.max(0,frequencyData[i]-frequencyThreshold) / (255-frequencyThreshold));
+                    })
+                    .attr("fill",function(d,i){
+                        //return d3.hsl(strokeHexArray[0],strokeHexArray[1],(Math.max(0,frequencyData[i]-frequencyThreshold) / (255-frequencyThreshold)) ) ;
+                        return d3.hsl(strokeHexArray[0],strokeHexArray[1],(Math.max(0,frequencyData[i]) / (255)) ) ;
+                    })
+
+                for(var i=0; i<numAreaPoints; i++){
+                    var xVal = i/(numAreaPoints-1)*svgWidth;
+                    var yVal = svgHeight - (svgHeight/2 + Math.sin(t / animationSpeed + Math.PI*2/(numAreaPoints-1) * i + Math.PI*1.0) * maxWaveShift);
+                    activePoints.push({ "x": xVal, "y": yVal });
+                }
+
+                activePath
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return activePoints[i].x })
+                        .y0(svgHeight)
+                        .y1(function(d,i) { return activePoints[i].y })
+                        .curve(d3.curveNatural)
+                    );                
+            }
+            animateChart();
+        }
+
     } else{
         console.log("Audio not playing");
 
     }
 
+}
+
+function paretoDistribution (minimum, alpha) {
+    var u = 1.0 - Math.random();
+    return minimum / Math.pow(u, 1.0 / alpha);
+}
+
+function randn_bm() {
+    var u = 0, v = 0;
+    while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+    while(v === 0) v = Math.random();
+    return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
 }
 
 function hexagon(radius) {
