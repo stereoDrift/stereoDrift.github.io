@@ -16,6 +16,7 @@ var visualizationChoice = String(visualizationMenu.value);
 var colourMenu = document.getElementById("colourMenu");
 var colourChoice = String(colourMenu.value);
 
+var navMenuDiv = document.getElementById("navMenuDiv");
 var svgContainerDiv = document.getElementById("svgContainerDiv");
 var mainSvg = document.getElementById("mainSvg");
 
@@ -341,11 +342,15 @@ function toggleGrain(){
 function showDemoTrackMenu(){
     demoTrackDiv.classList.remove("hide");
     uploadTrackDiv.classList.add("hide");
+    setSvgSize();
+
 }
 
 function showUploadTrackMenu(){
     demoTrackDiv.classList.add("hide");
     uploadTrackDiv.classList.remove("hide");
+    setSvgSize();
+
 }
 
 function getUserInputs(){
@@ -549,6 +554,7 @@ function readFile(files) {
             clickPlayButton();
 
         }
+    setSvgSize();
 
 }
 
@@ -734,6 +740,8 @@ function runVisualization() {
         strokeColour = palette18[2];
     }
 
+    //change background colour of menu
+    navMenuDiv.style.backgroundColor = backgroundColour;
 
     //convert fill colour HEX into RGB instead
 
@@ -754,10 +762,10 @@ function runVisualization() {
     var fillHexArray = [fillHSL.h, fillHSL.s, fillHSL.l];
 
     var backgroundHSL = d3.hsl(backgroundColour);
+    var backgroundHexArray = [backgroundHSL.h, backgroundHSL.s, backgroundHSL.l];
+
     //console.log(backgroundHSL);
     //console.log(backgroundHSL.h);
-
-    var backgroundHexArray = [backgroundHSL.h, backgroundHSL.s, backgroundHSL.l]
 
     var strokeR = parseInt(strokeColour.substr(1,2), 16); // Grab the hex representation of red (chars 1-2) and convert to decimal (base 10).
     var strokeG = parseInt(strokeColour.substr(3,2), 16);
@@ -5693,10 +5701,231 @@ function runVisualization() {
             }
             animateChart();
         }
+    
+        else if(visualizationChoice == "scroller"){
 
-    } else{
-        console.log("Audio not playing");
+            var numLines = 10;
+            
+            var minDots = 10;
+            var maxDots = 40;
+            var dotRange = maxDots - minDots;
+            var numDots = Number(minDots + Math.round((Math.random()*dotRange)));
+            console.log("Number of dots: "+numDots);
+            var frequencyThreshold = 140;
+            var frequencyData = new Uint8Array(numDots);
+            analyser.smoothingTimeConstant = 0.95;
 
+            var initialDotRadius = svgWidth / numDots / 2;
+            //var initialDotRadius = 50;
+            var minDotRadius = 5;
+            var maxDotRadius = 10;
+
+            var initialXMargin = initialDotRadius;
+            var maxYShift = svgHeight * 0.8;
+
+            var maxDotLightness = 0.8;
+            var minDotLightness = 0.2;
+            var dotLightnessRange = maxDotLightness - minDotLightness;
+
+            var animationSpeed = 15 ; //higher value gives slower animation
+
+            //draw the vertical lines
+            for(var i=0; i<numLines; i++){
+
+                var xVal = (i/(numLines-1) * (svgWidth));
+
+                var mainStrokeColour = d3.hsl(strokeHexArray[0],strokeHexArray[1], 0.5);
+                var minorStrokeColour = d3.hsl(strokeHexArray[0],strokeHexArray[1], 0.4);
+
+                svg.append("line")
+                    .style("stroke", minorStrokeColour)  // colour the line
+                    .attr("x1", xVal)     // x position of the first end of the line
+                    .attr("y1", svgHeight)      // y position of the first end of the line
+                    .attr("x2", xVal)     // x position of the second end of the line
+                    .attr("y2", 0)    // y position of the second end of the line
+                    .attr('stroke-width', 1)
+                    .attr("class","verticalLines")
+            }
+
+            //draw the active dots
+            for(var i=0; i<numDots; i++){
+
+                var xVal = (i/(numDots-1) * (svgWidth)) - initialDotRadius;
+                var yVal = svgHeight / 2;
+
+                var dotColour = d3.hsl(fillHexArray[0],fillHexArray[1], maxDotLightness - (dotLightnessRange * (i/(numDots-1))));
+
+                svg.append("circle")
+                    .attr("r",initialDotRadius)
+                    .attr("cx",xVal)
+                    .attr("cy",yVal)
+                    .attr("fill",dotColour)
+                    .attr("class","activeCircles")
+            }
+
+            function animateChart(){
+
+                activePoints = [];
+                var t = performance.now();
+
+                analyser.getByteFrequencyData(frequencyData);
+                requestAnimationFrame(animateChart);
+
+                svg.selectAll(".verticalLines")
+                    .attr("x1",function(d,i){                       
+                        var initialXVal = (i/(numLines-1) * (svgWidth));
+                        var xShift = t / animationSpeed; 
+                        var currentXVal = (initialXVal + xShift) % svgWidth;
+                        return currentXVal;
+                    })
+                    .attr("x2",function(d,i){                       
+                        var initialXVal = (i/(numLines-1) * (svgWidth));
+                        var xShift = t / animationSpeed; 
+                        var currentXVal = (initialXVal + xShift) % svgWidth;
+                        return currentXVal;
+                    })
+
+                svg.selectAll(".activeCircles")
+                    .attr("cy",function(d,i){                        
+                        var currentYVal = svgHeight - (Math.max(0,(frequencyData[i]-frequencyThreshold)/(255-frequencyThreshold)) * maxYShift);
+                        //return svgHeight/2;
+                        return currentYVal;
+                    })
+                    .attr("cx",function(d,i){                       
+
+                        var initialPosition = (i/(numDots-1) * (svgWidth)) - initialDotRadius;
+                        var xShift = (t / animationSpeed);
+                        var adjustedPosition = (initialPosition + xShift) % (svgWidth + initialDotRadius);
+                        return adjustedPosition;
+                        /*
+                        if(adjustedPosition < 50){
+                            return -initialDotRadius;
+                        } else {
+                            return adjustedPosition;
+                        }
+                        */
+                    })
+                    /*.attr("r",function(d,i){
+                        return minDotRadius + (maxDotRadius-minDotRadius) * (Math.max(0,frequencyData[i]-frequencyThreshold) / (255-frequencyThreshold));
+                    })*/
+                    /*.attr("fill",function(d,i){
+                        //return d3.hsl(strokeHexArray[0],strokeHexArray[1],(Math.max(0,frequencyData[i]-frequencyThreshold) / (255-frequencyThreshold)) ) ;
+                        //return d3.hsl(strokeHexArray[0],strokeHexArray[1],(Math.max(0,frequencyData[i]) / (255)) ) ;
+                    })*/
+
+            }
+            animateChart();
+
+        }
+
+        else if(visualizationChoice == "hourglass"){
+
+            var numCells = 100;
+            var initialCellWidth = svgWidth * 0.5;
+            var initialCellHeight = svgHeight / numCells;
+            var maxWidthShift = initialCellWidth * 0.95;
+            var maxHeightShift = initialCellHeight * 0.99;
+            var hueRange = 125;
+            var frequencyData = new Uint8Array(numCells);
+            var animationSpeed = 2000; //higher value gives slower animation
+            var minStrokeWidth = 0;
+            var maxStrokeWidth = 3;
+            var frequencyThreshold = 140;
+            var strokeFrequencyThreshold = 170;
+            analyser.smoothingTimeConstant = 0.9;
+
+            var lineFunction = d3.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+
+            //initial draw
+            for(var i=0; i<numCells; i++){
+                
+                //draw grid cells
+                svg.append("rect")
+                    .attr("width",initialCellWidth)
+                    .attr("height",initialCellHeight)
+                    .attr("x",svgWidth/2 - initialCellWidth/2)
+                    .attr("y",svgHeight - (i+1)*initialCellHeight)
+                    .attr("fill",fillColour)
+                    .attr("fill-opacity",1)
+                    .attr("stroke",strokeColour)
+                    .attr("stroke-width",minStrokeWidth)
+                    .attr("id","cell"+i)
+        
+            }
+
+            //animate
+            function animateChart(){
+                
+                var t = performance.now();
+                analyser.getByteFrequencyData(frequencyData);
+
+                requestAnimationFrame(animateChart);
+
+                for(var i=0; i<numCells; i++){
+
+                    var currentWidth = initialCellWidth + maxWidthShift * Math.sin(t/(animationSpeed) + i/(numCells) * Math.PI * 2);
+                    var currentHeight = initialCellHeight + maxHeightShift * Math.cos(t/(animationSpeed) + i/(numCells) * Math.PI * 2);
+                    var normalizedFrequencyValue = (frequencyData[i]-frequencyThreshold)/(255-frequencyThreshold); 
+
+
+                    svg.select("#cell"+i)
+                        .attr("width",currentWidth)
+                        .attr("height",currentHeight)
+                        .attr("x",svgWidth/2 - currentWidth/2)
+                        //.attr("y",svgHeight/2 - (currentHeight/2))
+                        .attr("fill",d3.hsl(fillHue - hueRange/2 + normalizedFrequencyValue * hueRange, normalizedFrequencyValue * 0.8, normalizedFrequencyValue * 0.8))
+                        .attr("stroke-width",minStrokeWidth + Math.max(0,frequencyData[i]-strokeFrequencyThreshold)/(255-strokeFrequencyThreshold) * maxStrokeWidth)
+                
+                }
+
+                /*
+                var previousHeightSum = 0;
+                var heightSum = 0;
+
+                for(var i=0; i<numRows; i++){
+
+                    var currentHeight = initialCellHeight + maxHeightShift * Math.cos(t/(animationSpeed/1) + i/(numRows) * Math.PI * 2);
+                    heightSum = previousHeightSum + currentHeight;
+
+                    var previousWidthSum = 0;
+                    var widthSum = 0;
+
+                    for(var j=0; j<numCols; j++){
+
+                        var currentWidth = initialCellWidth + maxWidthShift * Math.sin(t/(animationSpeed/2) + j/(numCols) * Math.PI * 2);
+                        //var currentWidth = initialCellWidth;
+                        widthSum = previousWidthSum + currentWidth;
+
+                        var normalizedFrequencyValue = (frequencyData[i*numRows+j]-frequencyThreshold)/(255-frequencyThreshold); 
+
+                        
+                        //update grid
+                        svg.select("#cell"+i+j)
+                            .attr("fill",d3.hsl(fillHue - hueRange/2 + normalizedFrequencyValue * hueRange, normalizedFrequencyValue * 0.8,normalizedFrequencyValue * 0.8))   
+                            .attr("x",previousWidthSum)
+                            .attr("y",svgHeight - previousHeightSum - currentHeight)
+                            .attr("width",currentWidth)
+                            .attr("height",currentHeight)
+                            .attr("fill-opacity",Math.max(0,frequencyData[i*numRows+j]-frequencyThreshold)/(255-frequencyThreshold))
+                            .attr("stroke-width",minStrokeWidth + Math.max(0,frequencyData[i*numRows+j]-frequencyThreshold)/(255-frequencyThreshold) * maxStrokeWidth)
+
+                        previousWidthSum = widthSum;
+                    }
+
+                    previousHeightSum = heightSum;
+                }
+                */
+            }
+            animateChart();
+
+        }
+    
+        else{
+            console.log("Audio not playing");
+
+        }
     }
 
 }
