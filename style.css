@@ -18,6 +18,7 @@ table {
     text-align:center;
     max-width: 400px;
     /*margin:auto;*/
+    /*background-color: green;*/
 }
 
 #infoMenuTable td {
@@ -84,6 +85,8 @@ td {
     align-items: center;
     gap: 5px;
     max-width:500px;
+    background-color: #1A1831;
+    opacity: 0.9;
 }
 
 .flexItem {
@@ -113,7 +116,7 @@ td {
     border: none;
     max-width: 20px;
     max-height: 20px;
-    background-color:none;
+    background-color: transparent;
 }
 
 #uploadTrackDiv{
