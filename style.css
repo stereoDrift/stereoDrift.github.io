@@ -120,7 +120,7 @@ td {
 }
 
 #uploadTrackDiv{
-    font-size: 14px;
+    font-size: 12px;
 }
 
 button {
@@ -228,13 +228,13 @@ button {
     }
 
     #uploadTrackDiv{
-        font-size: 16px;
+        font-size: 14px;
     }
     
     /* Styling for audio upload file menu */
     #audioFileChooser {
         width: 250px;
-        font-size: 15px;
+        font-size: 14px;
     }
 
     #microphoneButton, #playAudioFileButton, #pauseAudioFileButton, #rewindAudioFileButton {
@@ -244,6 +244,7 @@ button {
     
     #microphoneButton{
         width:70px;
+        margin-bottom: 2px;
     }
 
     #toggleMenuButton{
