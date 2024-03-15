@@ -2,12 +2,13 @@
 - How to improve latency when using the microphone to record audio?
 - Allow users to "create" their own music video -- add text, choose colours, upload music, export the file, etc...
 - Add gradient / "textured" backgrounds?
-- Feature to import audio from Spotify or YouTube URL?
+- Feature to import audio from Spotify or YouTube URL? Check Spotify API
 - Auto-play next demo track after one track finishes?
 - Reduce animation frame rate to improve performance / reduce compute?
 - Less sensitivity to bass&percussion / more sensitivity to individual notes?
 - Add "advanced options" menu with toggles for sensitivity, etc...?
-- Grid visual: doesn't re-draw after show/hide menu toggle
+- Add Uma Mockingbird to demo track. Moonchild track is broken on live version?
+- Change order of visuals (newer ones first, or hide some of the lower quality ones in the menu)
 */
 
 var visualizationMenu = document.getElementById("visualizationMenu");
