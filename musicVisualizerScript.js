@@ -5990,6 +5990,122 @@ function runVisualization() {
             animateChart();
 
         }
+
+        else if(visualizationChoice == "queue"){
+            var pathLength = Math.min(svgHeight,svgWidth) * 0.55;
+            var numActiveCircles = 41; //actually produces 1 less circle than this
+
+            //animation variables
+            var frequencyData = new Uint8Array(numActiveCircles-1);
+            var animationSpeed = 8000; //higher value gives slower animation
+            var frequencyThreshold = 130;
+            analyser.smoothingTimeConstant = 0.92;
+            var hueRange = 125;
+
+            var minStrokeWidth = 1;
+            var maxStrokeWidth = 10;
+            var strokeRange = maxStrokeWidth - minStrokeWidth;
+
+            var minRadius = svgWidth * 0.01;
+            var maxRadius = svgWidth * 0.05;
+            var radiusRange = maxRadius - minRadius;
+
+            //draw static path -- square
+            svg.append('line')
+                .style("stroke", strokeColour)
+                .style("stroke-width", 4)
+                .attr("x1", svgWidth/2-pathLength/2)
+                .attr("y1", svgHeight/2-pathLength/2)
+                .attr("x2", svgWidth/2-pathLength/2)
+                .attr("y2", svgHeight/2+pathLength/2);
+
+            svg.append('line')
+                .style("stroke", strokeColour)
+                .style("stroke-width", 4)
+                .attr("x1", svgWidth/2-pathLength/2)
+                .attr("y1", svgHeight/2-pathLength/2)
+                .attr("x2", svgWidth/2+pathLength/2)
+                .attr("y2", svgHeight/2-pathLength/2);
+
+            svg.append('line')
+                .style("stroke", strokeColour)
+                .style("stroke-width", 4)
+                .attr("x1", svgWidth/2+pathLength/2)
+                .attr("y1", svgHeight/2-pathLength/2)
+                .attr("x2", svgWidth/2+pathLength/2)
+                .attr("y2", svgHeight/2+pathLength/2);
+                
+            svg.append('line')
+                .style("stroke", strokeColour)
+                .style("stroke-width", 4)
+                .attr("x1", svgWidth/2-pathLength/2)
+                .attr("y1", svgHeight/2+pathLength/2)
+                .attr("x2", svgWidth/2+pathLength/2)
+                .attr("y2", svgHeight/2+pathLength/2);
+
+            
+            //draw static circles
+            
+            for(i=0; i<(numActiveCircles-1); i++){
+                svg.append("circle")
+                .attr("r",minRadius)
+                .attr("cx",svgWidth/2-pathLength/2)
+                .attr("cy",svgHeight/2-pathLength/2)
+                .attr("fill",fillColour)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", minStrokeWidth)
+                .attr("class","activeCircles")
+                .attr("id","circle"+i)
+            }
+
+            //animate
+            function animateChart(){
+
+                var t = performance.now();
+                analyser.getByteFrequencyData(frequencyData);
+                requestAnimationFrame(animateChart);
+
+
+                for(i=0; i<numActiveCircles; i++){
+
+                    //var currentPathValue = Math.cos(Math.PI*2 * t/animationSpeed) / 2 + 0.5;
+                    var currentPathValue = ((t/animationSpeed % 4) / 4 + i/(numActiveCircles-1)) % 1;
+
+                    var currentXValue = 0;
+                    var currentYValue = 0;
+
+                    var normalizedFrequencyValue = Math.max(0,(frequencyData[i]-frequencyThreshold)/(255-frequencyThreshold)); 
+
+                    if(currentPathValue<=0.25){
+                        currentXValue = svgWidth/2 - pathLength/2 + (pathLength*currentPathValue/0.25);
+                        currentYValue = svgHeight/2 - pathLength/2;
+                    } else if(currentPathValue<=0.5){
+                        currentXValue = svgWidth/2 + pathLength/2;
+                        currentYValue = svgHeight/2 - pathLength/2 + (pathLength*((currentPathValue-0.25)/0.25));                        
+                    } else if(currentPathValue<=0.75){
+                        currentXValue = svgWidth/2 + pathLength/2 - (pathLength*((currentPathValue-0.5)/0.25));
+                        currentYValue = svgHeight/2 + pathLength/2;                       
+                    } else if(currentPathValue<1.0){
+                        currentXValue = svgWidth/2 - pathLength/2;
+                        currentYValue = svgHeight/2 + pathLength/2 - (pathLength*((currentPathValue-0.75)/0.25));               
+                    } 
+                    
+                    svg.select("#circle"+i)
+                        .attr("cx",currentXValue)
+                        .attr("cy",currentYValue)
+                        .attr("fill",function(d,i){                        
+                            var fillValue = d3.hsl(fillHue - (hueRange/2) + (hueRange * normalizedFrequencyValue), normalizedFrequencyValue, normalizedFrequencyValue);
+                            return fillValue;
+                        })
+                        .attr("r", minRadius + normalizedFrequencyValue * radiusRange)
+                        //.attr("stroke-width", minStrokeWidth + normalizedFrequencyValue * strokeRange)
+
+                }
+
+            }
+            animateChart();
+
+        }
     
         else{
             console.log("Audio not playing");

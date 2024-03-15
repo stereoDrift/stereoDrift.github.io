@@ -3,6 +3,7 @@ body {
     background-color: #eeeeee;
     font-size: 14px;
     margin: 0px 0px 0px 0px;
+    overflow: hidden;
 }
 
 table {
