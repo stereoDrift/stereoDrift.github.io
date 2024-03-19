@@ -6278,6 +6278,93 @@ function runVisualization() {
             animateChart();
         }        
 
+        else if(visualizationChoice == "oeil"){
+
+            var numCircles1 = 12;
+            var circle1MaxRadius = svgWidth * 0.4;
+            var circle1MinRadius = svgWidth * 0.2;
+            var circle1RadiusRange = circle1MaxRadius - circle1MinRadius;
+            var circle1LeftXValue = svgWidth/2 - circle1MaxRadius;
+
+            var numCircles2 = 12;
+            var circle2MaxRadius = svgWidth * 0.18;
+            var circle2MinRadius = svgWidth * 0.04;
+            var circle2RadiusRange = circle2MaxRadius - circle2MinRadius;
+            var circle2RightXValue = circle1LeftXValue + (circle1MinRadius*2);
+
+            var numActiveShapes = numCircles1 + numCircles2;
+
+            for(i=0; i<numCircles1; i++){
+
+                var currentRadius = circle1MaxRadius - (circle1RadiusRange * i/(numCircles1 - 1));
+                var currentXValue = circle1LeftXValue + currentRadius;
+
+                svg.append("circle")
+                    .attr("fill",fillColour)
+                    .attr("stroke",strokeColour)
+                    .attr("cy",svgHeight/2)
+                    .attr("cx",currentXValue)
+                    .attr("r",currentRadius)
+            }
+
+            for(i=0; i<numCircles2; i++){
+
+                var currentRadius = circle2MaxRadius - (circle2RadiusRange * i/(numCircles2 - 1));
+                var currentXValue = circle2RightXValue - currentRadius;
+                var currentStrokeWidth;
+
+                /*
+                if(i==(numCircles2-1)){
+                    currentStrokeWidth = 5;
+                } else {
+                    currentStrokeWidth = 1;
+                }
+                */
+
+                svg.append("circle")
+                    .attr("fill",fillColour)
+                    .attr("stroke",strokeColour)
+                    .attr("stroke-width",1)
+                    .attr("cy",svgHeight/2)
+                    .attr("cx",currentXValue)
+                    .attr("r",currentRadius)
+            }
+
+            //animation variables
+            var frequencyData = new Uint8Array(numActiveShapes);
+            analyser.smoothingTimeConstant = 0.92;
+            var frequencyThreshold = 155;
+            var hueRange = 125;
+            
+            // Continuously loop and update chart with frequency data.
+            function animateChart() {
+    
+                var t = performance.now();
+                analyser.getByteFrequencyData(frequencyData);
+                requestAnimationFrame(animateChart);
+
+                svg.selectAll("circle")
+                    .attr("fill",function(d,i){                        
+                        var normalizedFrequencyValue = Math.max(0, (frequencyData[i]-frequencyThreshold) / (255 - frequencyThreshold));
+                        var fillValue = d3.hsl(fillHue - (hueRange/2) + (hueRange * normalizedFrequencyValue), normalizedFrequencyValue * 0.8, normalizedFrequencyValue * 0.8);
+                        return fillValue;
+                    })
+                    /*
+                    .attr("fill-opacity",function(d,i){                        
+                        var opacityValue = Math.max(0, (frequencyData[i]-frequencyThreshold) / (255 - frequencyThreshold));
+                        return opacityValue;
+                    })
+                    */
+
+            }
+
+            // Run the loop
+            animateChart();
+
+
+        }
+
+
         else{
             console.log("Audio not playing");
 
