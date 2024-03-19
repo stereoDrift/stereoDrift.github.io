@@ -138,10 +138,13 @@ var palette16 = ["#02190C", "#900C3F", "#FF7C60"]; //emerald
 var palette17 = ["#141415", "#9F978D", "#B5C8BA"]; //slate
 var palette18 = ["#FFB3A7", "#C93756", "#F7665A"]; //crimson
 
-
 var backgroundColour;
 var fillColour;
 var strokeColour;
+
+var backgroundHue;
+var fillHue;
+var strokeHue;
 
 //console.log("SVG height: "+svgHeight);
 console.log("Visualization choice: "+visualizationChoice);
@@ -754,13 +757,13 @@ function runVisualization() {
     var fillB = parseInt(fillColour.substr(5,2), 16);
 
     //get Hue of RGB fill colour (first element of HSL -- Hue, Saturation, Lightness)
-    var fillHue = rgbToHsl(fillR, fillG, fillB)[0] * 360;
+    fillHue = rgbToHsl(fillR, fillG, fillB)[0] * 360;
 
     var backgroundR = parseInt(backgroundColour.substr(1,2), 16); // Grab the hex representation of red (chars 1-2) and convert to decimal (base 10).
     var backgroundG = parseInt(backgroundColour.substr(3,2), 16);
     var backgroundB = parseInt(backgroundColour.substr(5,2), 16);
 
-    var backgroundHue = rgbToHsl(backgroundR, backgroundG, backgroundB)[0] * 360;
+    backgroundHue = rgbToHsl(backgroundR, backgroundG, backgroundB)[0] * 360;
 
     var fillHSL = d3.hsl(fillColour);
     var fillHexArray = [fillHSL.h, fillHSL.s, fillHSL.l];
@@ -775,7 +778,7 @@ function runVisualization() {
     var strokeG = parseInt(strokeColour.substr(3,2), 16);
     var strokeB = parseInt(strokeColour.substr(5,2), 16);
 
-    var strokeHue = rgbToHsl(strokeR, strokeG, strokeB)[0] * 360;
+    strokeHue = rgbToHsl(strokeR, strokeG, strokeB)[0] * 360;
 
     var strokeHSL = d3.hsl(strokeColour);
     var strokeHexArray = [strokeHSL.h, strokeHSL.s, strokeHSL.l];
@@ -6107,13 +6110,240 @@ function runVisualization() {
             animateChart();
 
         }
+
+        else if(visualizationChoice == "test"){
+        
+            var numDataPoints = 60;
+            var innerRadius = 0;
+            var outerRadius = Math.min(svgWidth, svgHeight)/2 * 0.90;
+            var strokeWidth = 5;
+            var fillOpacity = 1.0;
+
+            var frequencyThreshold = 0;
+            var numBassPoints = Math.round(numDataPoints * 0.2);
+            var bassFactor = 0.6;
+
+            var fullCircle = 2 * Math.PI * (numDataPoints-1) / numDataPoints;
+
+            analyser.smoothingTimeConstant = 0.95;
+
+            const y = d3.scaleLinear()
+                .range([innerRadius, outerRadius]);
+            
+            const x = d3.scaleLinear()
+
+            x.range([0, fullCircle]);
+
+            x.domain([0,numDataPoints]);
+            y.domain([0,255]);
+
+            const line = d3.lineRadial()
+                .angle(function(d,i) { return x(i); })
+                .radius(function(d) { return y(d); })
+                .curve(d3.curveBasisClosed)
+
+            var radialFrequencyData = new Uint8Array(numDataPoints);
+
+            var numBlobs = 1000;
+            for(i=0; i<numBlobs; i++){
+                drawBlob(strokeHue);
+            }
+
+            //draw initial radial line plot
+            var linePlot = svg.append("path")
+                .datum(radialFrequencyData)
+                .attr("fill", d3.hsl(fillHue, 0.5, 0.5))
+                .attr("fill-opacity",fillOpacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("transform", "translate(" + svgWidth / 2 + "," + svgHeight / 2 + ")")
+                .attr("d", line);
+
+            // Continuously loop and update chart with frequency data.
+            function animateChart() {
+                
+                var t = performance.now();
+
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(radialFrequencyData);
+
+                /*
+                for(i=0; i<numDataPoints; i++){
+                    if(radialFrequencyData[i] < frequencyThreshold){
+                        radialFrequencyData[i] = frequencyThreshold;
+                    }
+                }
+                */
+
+                for(i=0; i<numBassPoints; i++){
+                    radialFrequencyData[i] = radialFrequencyData[i] * bassFactor;
+                }    
+                
+                requestAnimationFrame(animateChart);
+
+                linePlot
+                    .datum(radialFrequencyData)
+                    //.attr("transform", "translate(" + svgWidth / 2 + "," + svgHeight / 2 + ")")
+                    //.attr("transform","rotate("+t/50+" "+0+" "+0+")")
+                    //.attr("fill", d3.hsl(fillHue + t/450, 0.4, 0.5))
+                    .attr("d", line);
+                    
+            }
+
+            // Run the loop
+            animateChart();
+
+        }
+
+        else if(visualizationChoice == "dancefloor"){
+        
+            var numBlobs = 1000;
+            for(i=0; i<numBlobs; i++){
+                drawBlob(backgroundHue);
+            }
+
+            //background rectangle
+
+            var backgroundWidth = svgWidth * 0.6;
+            var backgroundHeight = svgHeight * 0.6;
+
+            svg.append("rect")
+                .attr("width",backgroundWidth)
+                .attr("height",backgroundHeight)    
+                .attr("x", svgWidth/2 - backgroundWidth/2)
+                .attr("y", svgHeight/2 - backgroundHeight/2)
+                .attr("fill", backgroundColour)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",4)
+
+            //initial draw for active rectangles
+            var numCols = 8;
+            var numRows = 8;
+            var numCells = numCols * numRows;
+
+            var cellWidth = backgroundWidth / numCols;
+            var cellHeight = backgroundHeight / numRows;
+
+            var minStrokeWidth = 1;
+            var maxStrokeWidth = 5;
+            var strokeRange = maxStrokeWidth - minStrokeWidth;
+
+            for(i=0; i<numRows; i++){
+                for(j=0; j<numCols; j++){
+                    svg.append("rect")
+                        .attr("width",cellWidth)
+                        .attr("height",cellHeight)    
+                        .attr("x", svgWidth/2 - backgroundWidth/2 + j*cellWidth)
+                        .attr("y", svgHeight/2 + backgroundHeight/2 - (i+1)*cellHeight)
+                        .attr("fill", fillColour)
+                        .attr("stroke",strokeColour)
+                        .attr("stroke-width",minStrokeWidth)
+                        .attr("class","activeRectangles")
+                }
+            }
+
+            //animation variables
+            var frequencyData = new Uint8Array(numCells);
+            analyser.smoothingTimeConstant = 0.92;
+            var frequencyThreshold = 150;
+            var hueRange = 125;
+            
+            // Continuously loop and update chart with frequency data.
+            function animateChart() {
     
+                var t = performance.now();
+                analyser.getByteFrequencyData(frequencyData);
+                requestAnimationFrame(animateChart);
+
+                svg.selectAll(".activeRectangles")
+                    .attr("stroke-width",function(d,i){                        
+                        var widthValue = Math.max(minStrokeWidth, ((frequencyData[i]-frequencyThreshold) / (255 - frequencyThreshold)) * maxStrokeWidth);
+                        return widthValue;
+                    })
+                    .attr("fill",function(d,i){                        
+                        var normalizedFrequencyValue = Math.max(0, (frequencyData[i]-frequencyThreshold) / (255 - frequencyThreshold));
+                        var fillValue = d3.hsl(fillHue - (hueRange/2) + (hueRange * normalizedFrequencyValue), normalizedFrequencyValue, normalizedFrequencyValue);
+                        return fillValue;
+                    })
+                    /*
+                    .attr("fill-opacity",function(d,i){                        
+                        var opacityValue = Math.max(0, (frequencyData[i]-frequencyThreshold) / (255 - frequencyThreshold));
+                        return opacityValue;
+                    })
+                    */
+
+            }
+
+            // Run the loop
+            animateChart();
+        }        
+
         else{
             console.log("Audio not playing");
 
         }
     }
 
+}
+
+//inspired by Steve Makerspace tutorial on Pollock string theory
+//https://www.youtube.com/watch?v=I69sutIrxNI
+function drawBlob(hueInput){
+    //blob variables
+    var minDataPoints = 8;
+    var maxDataPoints = 35;
+    var numDataPoints = minDataPoints + (Math.random() * (maxDataPoints-minDataPoints)); //number of blob segments
+    var innerRadius = 0; //min size
+    var outerRadius = Math.min(svgWidth, svgHeight)/12 * Math.random(); //max size
+    var maxYValue = 200; //no change needed
+    var yRandomStep = maxYValue * 0.04; //extent of potential randomness
+    var xPosition = Math.random() * svgWidth;
+    var yPosition = Math.random() * svgHeight;
+    
+    var hueRange = 90;
+    var currentHue = hueInput - hueRange/2 + hueRange*Math.random();
+
+    var strokeWidth = 0;
+    var fillOpacity = 1;
+    var fullCircle = 2 * Math.PI * (numDataPoints-1) / numDataPoints;
+
+    const y = d3.scaleLinear()
+        .range([innerRadius, outerRadius])
+        .domain([0,maxYValue])
+    
+    const x = d3.scaleLinear()
+        .range([0, fullCircle])
+        .domain([0,numDataPoints])
+
+    const line = d3.lineRadial()
+        .angle(function(d,i) { return x(i); })
+        .radius(function(d) { return y(d); })
+        .curve(d3.curveBasisClosed)
+
+    //create blob
+    var radialFrequencyData = new Uint8Array(numDataPoints);
+    for(i=0; i<numDataPoints; i++){
+        if(i==0){
+            radialFrequencyData[i] = maxYValue / 2;
+        } else{
+            var currentStep = Math.random() * yRandomStep;
+            if(Math.random()<=0.5){
+                radialFrequencyData[i] = radialFrequencyData[i-1] + currentStep;
+            } else {
+                radialFrequencyData[i] = radialFrequencyData[i-1] - currentStep;
+            }
+        }
+    }
+
+    //draw blob on canvas
+    var linePlot = svg.append("path")
+        .datum(radialFrequencyData)
+        .attr("fill", d3.hsl(currentHue, 0.25, 0.5))
+        .attr("fill-opacity",fillOpacity)
+        //.attr("stroke", strokeColour)
+        //.attr("stroke-width", strokeWidth)
+        .attr("transform", "translate(" + xPosition + "," + yPosition + ")")
+        .attr("d", line);
 }
 
 function paretoDistribution (minimum, alpha) {
@@ -6223,7 +6453,6 @@ function pathTween(d) {
         return "M" + p(0) + " A" + d.r + "," + d.r + " 0 " + (t < 0.5 ? 0 : 1) + " 1 " + p(t * Math.PI * 2);
     }
 }
-
 
 /*
 function flushAllD3Transitions() {
