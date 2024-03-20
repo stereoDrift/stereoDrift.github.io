@@ -102,6 +102,7 @@ var wireData = d3.range(-4 * Math.PI, 4 * Math.PI, 0.01);
 var joyPlotN = 150;
 var joyPlotRows = 3;
 var joyPlotCols = joyPlotN / joyPlotRows;
+var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 
 var numRings = 10;
 
@@ -111,7 +112,6 @@ var numActiveCircles = Math.floor(numSpiralCircles / activeCircleSpacing);
 
 var circlesFrequencyData = new Uint8Array(numCircles);
 var wireFrequencyData = new Uint8Array(1);
-var joyPlotFrequencyData = new Uint8Array(joyPlotN);
 var ringsFrequencyData = new Uint8Array(numRings);
 var spiralCircleData = new Uint8Array(numSpiralCircles);
 var activeSpiralCircleFrequencyData = new Uint8Array(numActiveCircles);
@@ -1170,34 +1170,7 @@ function runVisualization() {
             var y = d3.scaleLinear().domain([0, frequencyMax*chartHeightMultiplier]).range([svgHeight, 0]);
                 // automatically determining max range can work something like this
                 // var y = d3.scale.linear().domain([0, d3.max(data)]).range([h, 0]);
-    
-            /*
-            // create a line function that can convert data[] into x and y points
-            var line = d3.line()
-                // assign the X function to plot our line as we wish
-                .x(function(d,i) { 
-                    // verbose logging to show what's actually being done
-                    //console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
-                    // return the X coordinate where we want to plot this datapoint
-                    return x(i); 
-                })
-                .y(function(d) { 
-                    // verbose logging to show what's actually being done
-                    //console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
-                    // return the Y coordinate where we want to plot this datapoint
-                    return y(d); 
-                })
-                .curve(d3.curveBasis);
-    
-    
-            /*
-            svg.append("path")
-                .attr("stroke",fillColour)
-                .attr("stroke-width","2")
-                .attr("fill","none")
-                .attr("d", line(joyPlotFrequencyData));
-            */
-    
+
             // Add the area
     
             var path3 = svg.append("path")
@@ -1290,7 +1263,6 @@ function runVisualization() {
     
             // Run the loop
             renderJoyPlotChart();
-    
     
         }
     
@@ -5996,13 +5968,21 @@ function runVisualization() {
         }
 
         else if(visualizationChoice == "queue"){
-            var pathLength = Math.min(svgHeight,svgWidth) * 0.55;
+            
+            //active path variables
+            var pathLength = Math.min(svgHeight,svgWidth) * 0.65;
             var numActiveCircles = 41; //actually produces 1 less circle than this
+
+            //static background shapes
+            var numStaticShapes = 12;
+            var maxStaticLength = pathLength * 1.0;
+            var minStaticLength = pathLength * 0.08;
+            var staticLengthRange = maxStaticLength - minStaticLength; 
 
             //animation variables
             var frequencyData = new Uint8Array(numActiveCircles-1);
-            var animationSpeed = 8000; //higher value gives slower animation
-            var frequencyThreshold = 130;
+            var animationSpeed = 10000; //higher value gives slower animation
+            var frequencyThreshold = 140;
             analyser.smoothingTimeConstant = 0.92;
             var hueRange = 125;
 
@@ -6013,6 +5993,25 @@ function runVisualization() {
             var minRadius = svgWidth * 0.01;
             var maxRadius = svgWidth * 0.05;
             var radiusRange = maxRadius - minRadius;
+
+            //draw static background shapes
+            for(i=0; i<numStaticShapes; i++){
+                
+                var currentLength = maxStaticLength - (staticLengthRange * (i/(numStaticShapes-1)));
+                var currentOpacity = i/(numStaticShapes-1);
+
+                svg.append("rect")
+                    .attr("width",currentLength)
+                    .attr("height",currentLength)
+                    .attr("x",svgWidth/2 - currentLength/2)
+                    .attr("y",svgHeight/2 - currentLength/2)
+                    .attr("stroke",backgroundColour)
+                    .attr("stroke-width",1)
+                    .attr("fill",strokeColour)
+                    .attr("fill-opacity",currentOpacity)
+                    .attr("rx",20)
+
+            }
 
             //draw static path -- square
             svg.append('line')
@@ -6361,6 +6360,341 @@ function runVisualization() {
             // Run the loop
             animateChart();
 
+        }
+
+        else if(visualizationChoice == "bayWindow"){
+            
+            //static polygon coordinates
+
+            var leftValue = 0.35;
+            var rightValue = 0.8;
+            var bottomValue = 0.3;
+            var bottomValueInverse = 1-bottomValue;
+
+            var activeCanvasLeft = svgWidth * leftValue;
+            var activeCanvasRight = svgWidth * rightValue;
+            var activeCanvasBottom = svgHeight * bottomValue;
+            var activeCanvasTop = svgHeight * 1;
+
+            var x = d3.scaleLinear().range([0, svgWidth]);
+            var y = d3.scaleLinear().range([svgHeight, 0]);
+
+            x.domain([0, svgWidth]);
+            y.domain([0, svgHeight]);
+
+            //bottom
+            var poly1 = [
+                {"x":0, "y":0},
+                {"x":activeCanvasLeft,"y":activeCanvasBottom},
+                {"x":activeCanvasRight,"y":activeCanvasBottom},
+                {"x":svgWidth,"y":0}
+            ];
+
+            //left side
+            var poly2 = [
+                {"x":0, "y":activeCanvasTop},
+                {"x":activeCanvasLeft,"y":activeCanvasTop},
+                {"x":activeCanvasLeft,"y":activeCanvasBottom},
+                {"x":0,"y":0}
+            ];
+
+            //active shape (top)
+            var poly3 = [
+                {"x":activeCanvasLeft, "y":activeCanvasTop},
+                {"x":activeCanvasRight,"y":activeCanvasTop},
+                {"x":activeCanvasRight,"y":activeCanvasBottom},
+                {"x":activeCanvasLeft,"y":activeCanvasBottom}
+            ];
+
+            //right side
+            var poly4 = [
+                {"x":svgWidth, "y":activeCanvasTop},
+                {"x":activeCanvasRight,"y":activeCanvasTop},
+                {"x":activeCanvasRight,"y":activeCanvasBottom},
+                {"x":svgWidth,"y":0}
+            ];
+
+            //make defs and add the linear gradient
+            var lg = svg.append("defs").append("linearGradient")
+                .attr("id", "bottomGradient")//id of the gradient
+                .attr("x1", "0%")
+                .attr("x2", "100%")//horizontal gradient
+                .attr("y1", "0%")
+                .attr("y2", "0%")
+
+            var darkerFillColour = d3.hsl(fillHue+60, 0.6, 0.3);
+        
+            lg.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", darkerFillColour)//left colour
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "40%")
+                .style("stop-color", fillColour)//bottom colour
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "75%")
+                .style("stop-color", fillColour)//bottom colour
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "100%")
+                .style("stop-color", darkerFillColour)//bottom colour
+                .style("stop-opacity", 1)
+
+            var lg2 = svg.append("defs").append("linearGradient")
+                .attr("id", "activeGradient")//id of the gradient
+                .attr("x1", "0%")
+                .attr("x2", "0%")
+                .attr("y1", "0%")
+                .attr("y2", "100%")//since its a vertical linear gradient 
+        
+            lg2.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", backgroundColour)//top colour
+                .style("stop-opacity", 1)
+
+            lg2.append("stop")
+                .attr("offset", "20%")
+                .style("stop-color", backgroundColour)//top colour
+                .style("stop-opacity", 1)
+
+            lg2.append("stop")
+                .attr("offset", "100%")
+                .style("stop-color", fillColour)//bottom colour
+                .style("stop-opacity", 1)
+
+            var lg3 = svg.append("defs").append("linearGradient")
+                .attr("id", "sideGradient")//id of the gradient
+                .attr("x1", "0%")
+                .attr("x2", "0%")
+                .attr("y1", "0%")
+                .attr("y2", "100%")//since its a vertical linear gradient 
+        
+            lg3.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", "white")//top colour
+                .style("stop-opacity", 1)
+
+            lg3.append("stop")
+                .attr("offset", "100%")
+                .style("stop-color", strokeColour)//bottom colour
+                .style("stop-opacity", 1)
+
+            //draw static polygons
+            svg.append("polygon")
+                .data([poly1])    
+                .attr("points",function(d) { 
+                    return d.map(function(d) {
+                        return [x(d.x),y(d.y)].join(",");
+                    }).join(" ");
+                })
+                .attr("fill","url(#bottomGradient)")
+
+            //draw bottom grid lines
+            var numVerticalLines = 15;
+            for(i=0; i<numVerticalLines; i++){
+                svg.append("line")
+                    .attr("x1",svgWidth * (i/(numVerticalLines-1)))
+                    .attr("y1",svgHeight)
+                    .attr("x2",(activeCanvasRight-activeCanvasLeft) * (i/(numVerticalLines-1)) + activeCanvasLeft)
+                    .attr("y2",svgHeight-activeCanvasBottom)
+                    .attr("stroke","beige")
+                    .attr("stroke-width",2)
+            }
+
+            var numHorizontalLines = 15;
+            for(i=0; i<numHorizontalLines; i++){
+                svg.append("line")
+                    .attr("x1",0)
+                    .attr("y1",(activeCanvasBottom) * (i/(numHorizontalLines-1)) + (svgHeight-activeCanvasBottom))
+                    .attr("x2",svgWidth)
+                    .attr("y2",(activeCanvasBottom) * (i/(numHorizontalLines-1)) + (svgHeight-activeCanvasBottom))
+                    .attr("stroke","beige")
+                    .attr("stroke-width",2)
+            }
+
+            svg.append("polygon")
+                .data([poly2])    
+                .attr("points",function(d) { 
+                    return d.map(function(d) {
+                        return [x(d.x),y(d.y)].join(",");
+                    }).join(" ");
+                })
+                .attr("fill","url(#sideGradient)")
+            
+            svg.append("polygon")
+                .data([poly4])    
+                .attr("points",function(d) { 
+                    return d.map(function(d) {
+                        return [x(d.x),y(d.y)].join(",");
+                    }).join(" ");
+                })
+                .attr("fill","#FFE0EB")
+
+            svg.append("polygon")
+                .data([poly3])    
+                .attr("points",function(d) { 
+                    return d.map(function(d) {
+                        return [x(d.x),y(d.y)].join(",");
+                    }).join(" ");
+                })
+                .attr("fill","url(#activeGradient)")
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",2)
+            
+            //draw crescent moon
+            var moonX = svgWidth*(leftValue+0.11);
+            var moonY = svgHeight*0.09;
+            var moonSize = svgWidth * 0.05;
+
+            var activeMoonMinSize = moonSize * 0.0;
+            var activeMoonMaxSize = moonSize * 1.1;
+            var activeMoonSizeRange = activeMoonMaxSize - activeMoonMinSize;
+            var activeMoonMaxXShift = moonSize * 1.2;
+
+            var animationSpeed = 45000;
+
+            svg.append("circle")
+                .attr("cx",moonX)
+                .attr("cy",moonY)
+                .attr("r",moonSize)
+                .attr("fill","white")
+
+            svg.append("circle")
+                .attr("cx",moonX + activeMoonMaxXShift)
+                .attr("cy",moonY)
+                .attr("r",moonSize)
+                .attr("fill",backgroundColour)
+                //.attr("stroke","red")
+                .attr("id","activeMoonCircle")
+
+            //joyplot animation
+
+            analyser.smoothingTimeConstant = 0.95;
+    
+            var frequencyMax = 255;
+            var opacity = 1.0;
+            var strokeWidth = 2;
+    
+            var offset1 = 0;
+            var offset2 = 60;
+            var offset3 = 120;
+    
+            var chartHeightMultiplier = 1.4;
+            var joyPlotExponent = 0.92;
+    
+            var data1 = new Uint8Array(joyPlotCols);
+            var data2 = new Uint8Array(joyPlotCols);
+            var data3 = new Uint8Array(joyPlotCols);
+    
+            // X scale will fit all values from data[] within pixels 0-w
+            var x = d3.scaleLinear().domain([0, joyPlotCols-1]).range([activeCanvasLeft, activeCanvasRight]);
+            // Y scale will fit values from 0-10 within pixels h-0 (Note the inverted domain for the y-scale: bigger is up!)
+            var y = d3.scaleLinear().domain([0, frequencyMax*chartHeightMultiplier]).range([svgHeight*bottomValueInverse, svgHeight*0.2]);
+                // automatically determining max range can work something like this
+                // var y = d3.scale.linear().domain([0, d3.max(data)]).range([h, 0]);
+
+            // Add the area
+            var path3 = svg.append("path")
+                .datum(data3)
+                .attr("fill", fillColour)
+                .attr("fill-opacity",opacity-0.7)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return x(i) })
+                    .y0(y(0))
+                    .y1(function(d) { return y(d+offset3) })
+                    .curve(d3.curveBasis)
+                );
+    
+            var path2 = svg.append("path")
+                .datum(data2)
+                .attr("fill", fillColour)
+                .attr("fill-opacity",opacity-0.6)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return x(i) })
+                    .y0(y(0))
+                    .y1(function(d) { return y(d+offset2) })
+                    .curve(d3.curveBasis)
+                );
+    
+            var path1 = svg.append("path")
+                .datum(data1)
+                .attr("fill", fillColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", strokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return x(i) })
+                    .y0(y(0))
+                    .y1(function(d) { return y(d) })
+                    .curve(d3.curveBasis)
+                );
+    
+        
+            // Continuously loop and update chart with frequency data.
+            function renderJoyPlotChart() {
+                
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(joyPlotFrequencyData);
+                var t = performance.now();
+    
+                for(var i=0; i<joyPlotFrequencyData.length; i++){
+                    //console.log("allocate joyPlot frequency data");
+                    if(i < joyPlotFrequencyData.length*(1/3)){
+                        data1[i] = Math.pow(joyPlotFrequencyData[i],joyPlotExponent);
+    
+                    } else if(i < joyPlotFrequencyData.length*(2/3)){
+                        data2[i-(joyPlotFrequencyData.length*(1/3))] = Math.pow(joyPlotFrequencyData[i],joyPlotExponent);
+                    
+                    } else{
+                        data3[i-(joyPlotFrequencyData.length*(2/3))] = Math.pow(joyPlotFrequencyData[i],joyPlotExponent);
+                    
+                    }
+                }
+    
+                requestAnimationFrame(renderJoyPlotChart);
+    
+                path1
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return x(i) })
+                        .y0(y(0))
+                        .y1(function(d) { return y(d) })
+                        .curve(d3.curveBasis)
+                    )
+    
+                path2
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return x(i) })
+                        .y0(y(0))
+                        .y1(function(d) { return y(d+offset2) })
+                        .curve(d3.curveBasis)
+                    )
+    
+                path3
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return x(i) })
+                        .y0(y(0))
+                        .y1(function(d) { return y(d+offset3) })
+                        .curve(d3.curveBasis)
+                    )
+                
+                //active Moon animation
+                svg.select("#activeMoonCircle")
+                    .attr("r",((Math.sin(Math.PI*2 * t/animationSpeed))/2+0.5) * activeMoonSizeRange + activeMoonMinSize)
+                    .attr("cx",((Math.sin(Math.PI*2 * t/animationSpeed - Math.PI))/2+0.5) * activeMoonMaxXShift + (moonX))
+
+    
+            }
+    
+            // Run the loop
+            renderJoyPlotChart();
 
         }
 
