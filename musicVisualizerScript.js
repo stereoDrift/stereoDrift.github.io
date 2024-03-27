@@ -7266,6 +7266,397 @@ function runVisualization() {
 
         }
 
+        else if(visualizationChoice == "diving"){
+
+            var riverTopValue = svgHeight * 0.45;
+            var riverBottomValue = svgHeight * 0.85;
+            var riverHeight = riverBottomValue - riverTopValue;
+
+            var numLines = 4;
+            var linePoints = 13;
+            var numCircles = 20;
+            var numDataPoints = numLines*linePoints + numCircles;
+
+            var lineStrokeWidth = 12;
+
+            var minRadius = 0;
+            var maxRadius = 70;
+
+            var opacity = 0.20;
+            var maxCircleStrokeWidth = 12;
+
+            var lineOffset1 = 0.00;
+            var lineOffset2 = 0.1;
+            var lineOffset3 = 0.35;
+            var lineOffset4 = 0.6;
+
+            var numBlobs = 250;
+
+            analyser.smoothingTimeConstant = 0.93;
+            var frequencyThreshold = 120;
+
+            var lineFunction = d3.line()
+            .x(function(d) { return d.x; })
+            .y(function(d) { return d.y; })
+            .curve(d3.curveCatmullRomClosed)
+            //.curve(d3.curveBasisClosed)
+
+            //make defs and add the linear gradient
+            var lg = svg.append("defs").append("linearGradient")
+                .attr("id", "gradient1")//id of the gradient
+                .attr("x1", "0%")
+                .attr("x2", "0%")
+                .attr("y1", "0%")
+                .attr("y2", "100%")//since its a vertical linear gradient 
+            
+            
+            lg.append("stop")
+                .attr("offset", "0%")
+                .style("stop-color", backgroundColour)//top colour
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "80%")
+                .style("stop-color", "indigo")//middle colour
+                .style("stop-opacity", 1)
+
+            lg.append("stop")
+                .attr("offset", "100%")
+                .style("stop-color", "indigo")//bottom colour
+                .style("stop-opacity", 1)
+
+            //draw background blobs
+            for(i=0; i<numBlobs; i++){
+                drawBlob(backgroundHue);
+            }
+
+            //background polygon
+            var backgroundPolygonPoints = [];
+
+            backgroundPolygonPoints.push({x: -50, y: riverTopValue});
+            backgroundPolygonPoints.push({x: -50, y: riverTopValue - 50});
+            backgroundPolygonPoints.push({x: svgWidth*0.1, y: riverTopValue - svgHeight*0.12});
+            backgroundPolygonPoints.push({x: svgWidth*0.3, y: riverTopValue - svgHeight*0.06});
+            backgroundPolygonPoints.push({x: svgWidth*0.5, y: riverTopValue - svgHeight*0.09});
+            backgroundPolygonPoints.push({x: svgWidth*0.7, y: riverTopValue - svgHeight*0.07});
+            backgroundPolygonPoints.push({x: svgWidth+50, y: riverTopValue - 50});
+            backgroundPolygonPoints.push({x: svgWidth+50, y: riverTopValue });
+
+            svg
+                .append('path')
+                .datum(backgroundPolygonPoints)
+                .attr('d', lineFunction)
+                .attr('fill', 'url(#gradient1)')
+
+            //draw river bed (rectangle)
+            svg.append("rect")
+                .attr("height",riverHeight)
+                .attr("width",svgWidth)
+                .attr("x",0)
+                .attr("y",riverTopValue)
+                .attr("fill","indigo")
+
+            //draw horizontal lines in river bed
+
+            var riverLineStrokeWidth = 2;
+
+            svg.append("line")
+                .attr("x1",0)
+                .attr("y1",riverTopValue + riverHeight * 0.15)
+                .attr("x2",svgWidth*0.4)
+                .attr("y2",riverTopValue + riverHeight * 0.15)
+                .attr("stroke",backgroundColour)
+                .attr("stroke-width",riverLineStrokeWidth)
+                .attr("stroke-linecap","round")
+
+            svg.append("line")
+                .attr("x1",svgWidth*0.6)
+                .attr("y1",riverTopValue + riverHeight * 0.18)
+                .attr("x2",svgWidth)
+                .attr("y2",riverTopValue + riverHeight * 0.18)
+                .attr("stroke",backgroundColour)
+                .attr("stroke-width",riverLineStrokeWidth)
+                .attr("stroke-linecap","round")
+
+            svg.append("line")
+                .attr("x1",svgWidth*0.3)
+                .attr("y1",riverTopValue + riverHeight * 0.33)
+                .attr("x2",svgWidth*0.65)
+                .attr("y2",riverTopValue + riverHeight * 0.33)
+                .attr("stroke",backgroundColour)
+                .attr("stroke-width",riverLineStrokeWidth)
+                .attr("stroke-linecap","round")
+
+            svg.append("line")
+                .attr("x1",0)
+                .attr("y1",riverTopValue + riverHeight * 0.42)
+                .attr("x2",svgWidth*0.3)
+                .attr("y2",riverTopValue + riverHeight * 0.42)
+                .attr("stroke",backgroundColour)
+                .attr("stroke-width",riverLineStrokeWidth)
+                .attr("stroke-linecap","round")
+
+            svg.append("line")
+                .attr("x1",svgWidth * 0.65)
+                .attr("y1",riverTopValue + riverHeight * 0.58)
+                .attr("x2",svgWidth)
+                .attr("y2",riverTopValue + riverHeight * 0.58)
+                .attr("stroke",backgroundColour)
+                .attr("stroke-width",riverLineStrokeWidth)
+                .attr("stroke-linecap","round")
+
+            svg.append("line")
+                .attr("x1",svgWidth * 0.22)
+                .attr("y1",riverTopValue + riverHeight * 0.82)
+                .attr("x2",svgWidth * 0.52)
+                .attr("y2",riverTopValue + riverHeight * 0.82)
+                .attr("stroke",backgroundColour)
+                .attr("stroke-width",riverLineStrokeWidth)
+                .attr("stroke-linecap","round")
+
+            //set max range of colours, based on discussion from screen center
+            var hueRange = 90;
+            var hueStart = fillHue - hueRange/2;
+            var hueEnd = fillHue + hueRange/2;
+    
+            var hueScale = d3.scaleLinear()
+                .domain([0, hueRange])
+                .range([hueStart, hueEnd]);
+            
+            
+            if(svgWidth < 500){
+                numLines = 3;
+                linePoints = 13;
+                numCircles = 10;
+                numDataPoints = numLines*linePoints + numCircles;
+    
+                lineStrokeWidth = 8;
+    
+                minRadius = 10;
+                maxRadius = 40;
+    
+                opacity = 0.20;
+                maxCircleStrokeWidth = 10;
+            }
+
+            var frequencyData = new Uint8Array(numDataPoints);
+
+
+            //create and place shapes
+
+            //draw some of the cirles behind of the lines
+            for(var i=0; i<numCircles; i++){
+            
+                if(i%2 == 0){
+                    svg
+                    .append('circle')
+                    .attr("fill",fillColour)
+                    .attr('r', minRadius)
+                    .attr('stroke',fillColour)
+                    .attr('stroke-width', Math.random() * maxCircleStrokeWidth)
+                    .attr('fill-opacity', Math.random() + 0.1)
+                    .attr('cx', svgWidth/numCircles * i + (svgWidth/numCircles/2) )
+                    .attr('cy', riverTopValue + (Math.random()*riverHeight));
+                }
+
+            }
+
+            var line1Data = new Uint8Array(linePoints);
+            var line2Data = new Uint8Array(linePoints);
+            var line3Data = new Uint8Array(linePoints);
+            var line4Data = new Uint8Array(linePoints);
+
+            var line1 = svg.append("path")
+                .datum(line1Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(riverBottomValue)
+                    .y1(function(d) { return riverBottomValue - riverHeight*lineOffset1})
+                    .curve(d3.curveBasis)
+                );
+
+            var line2 = svg.append("path")
+                .datum(line2Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(riverBottomValue)
+                    .y1(function(d) { return riverBottomValue - riverHeight*lineOffset2})
+                    .curve(d3.curveBasis)
+                );
+
+            var line3 = svg.append("path")
+                .datum(line3Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(riverBottomValue)
+                    .y1(function(d) { return riverBottomValue - riverHeight*lineOffset3})
+                    .curve(d3.curveBasis)
+                );
+            
+            if(svgWidth>=500){
+                var line4 = svg.append("path")
+                .datum(line4Data)
+                .attr("fill", strokeColour)
+                .attr("fill-opacity",opacity)
+                .attr("stroke", strokeColour)
+                .attr("stroke-width", lineStrokeWidth)
+                .attr("d", d3.area()
+                    .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                    .y0(riverBottomValue)
+                    .y1(function(d) { return riverBottomValue - riverHeight*lineOffset4})
+                    .curve(d3.curveBasis)
+                );
+            }
+
+            //draw some of the cirles on top of the lines
+            for(var i=0; i<numCircles; i++){
+            
+                if(i%2 != 0){
+                    svg
+                    .append('circle')
+                    .attr("fill",fillColour)
+                    .attr('r', minRadius)
+                    .attr('stroke',fillColour)
+                    .attr('stroke-width', Math.random() * maxCircleStrokeWidth)
+                    .attr('fill-opacity', Math.random() + 0.1)
+                    .attr('cx', svgWidth/numCircles * i + (svgWidth/numCircles/2) )
+                    .attr('cy', riverTopValue + (Math.random()*riverHeight));
+                }
+
+            }
+
+            //foreground polygon
+            var foregroundPolygonPoints = [];
+
+            foregroundPolygonPoints.push({x: -50, y: svgHeight});
+            foregroundPolygonPoints.push({x: -50, y: riverBottomValue});
+            foregroundPolygonPoints.push({x: svgWidth*0.02, y: riverBottomValue - svgHeight*0.07});
+            foregroundPolygonPoints.push({x: svgWidth*0.16, y: riverBottomValue - svgHeight*0.11});
+            foregroundPolygonPoints.push({x: svgWidth*0.25, y: riverBottomValue - svgHeight*0.10});
+            foregroundPolygonPoints.push({x: svgWidth*0.24, y: riverBottomValue - svgHeight*0.055});
+            foregroundPolygonPoints.push({x: svgWidth*0.35, y: riverBottomValue - svgHeight*0.057});
+            foregroundPolygonPoints.push({x: svgWidth*0.36, y: riverBottomValue - svgHeight*0.040});
+            foregroundPolygonPoints.push({x: svgWidth*0.45, y: riverBottomValue - svgHeight*0.052});
+            foregroundPolygonPoints.push({x: svgWidth*0.55, y: riverBottomValue - svgHeight*0.06});
+            foregroundPolygonPoints.push({x: svgWidth*0.6, y: riverBottomValue - svgHeight*0.05});
+            foregroundPolygonPoints.push({x: svgWidth*0.7, y: riverBottomValue - svgHeight*0.065});
+            //foregroundPolygonPoints.push({x: svgWidth*0.85, y: riverBottomValue - svgHeight*0.05});                        
+            foregroundPolygonPoints.push({x: svgWidth+50, y: riverBottomValue});            
+            foregroundPolygonPoints.push({x: svgWidth+50, y: svgHeight});
+            //console.log(foregroundPolygonPoints);
+
+            svg
+                .append('path')
+                .datum(foregroundPolygonPoints)
+                .attr('d', lineFunction)
+                .attr('fill', backgroundColour)
+
+            /*
+            //draw small dots for "sand" at the bottom of the river bed
+            var numSmallDots = 20000;
+            var endValue = riverBottomValue - svgHeight * 0.02;
+            var startValue = svgHeight;
+            var yRange = startValue - endValue;
+
+            for(i=0; i<numSmallDots; i++){
+
+                var currentValue = Math.pow(Math.random(),15);
+                var currentDotPosition = startValue - currentValue*yRange -1;
+                //console.log(currentDotPosition)
+                svg.append("circle")
+                    .attr("r",0.3)
+                    .attr("fill",strokeColour)
+                    .attr("cx",Math.random() * svgWidth)
+                    .attr("cy",currentDotPosition)
+            }
+
+            //console.log(svgHeight);
+            //console.log(bottomValue);
+            */
+            
+            
+            // Continuously loop and update chart with frequency data.
+            function renderAnimation() {
+                // Copy frequency data to frequencyData array.
+                analyser.getByteFrequencyData(frequencyData);
+
+                requestAnimationFrame(renderAnimation);
+
+                line1Data = frequencyData.slice(0,linePoints);
+                line2Data = frequencyData.slice(linePoints,linePoints*2);
+                line3Data = frequencyData.slice(linePoints*2,linePoints*3);
+                
+                if(svgWidth>=500){
+                    line4Data = frequencyData.slice(linePoints*3,linePoints*4);
+                }
+                
+                circleData = frequencyData.slice(-numCircles);
+
+                line1
+                    .datum(line1Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(riverBottomValue)
+                        .y1(function(d) { return riverBottomValue - riverHeight*lineOffset1 - Math.max(0, d-50)})
+                        .curve(d3.curveBasis)
+                    );
+                    
+                line2
+                    .datum(line2Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(riverBottomValue)
+                        .y1(function(d) { return riverBottomValue - riverHeight*lineOffset2 - Math.max(0, d-50)})
+                        .curve(d3.curveBasis)
+                    );
+                    
+                line3
+                    .datum(line3Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(riverBottomValue)
+                        .y1(function(d) { return riverBottomValue - riverHeight*lineOffset3 - Math.max(0, d-50)})
+                        .curve(d3.curveBasis)
+                    );
+                    
+                if(svgWidth>=500){
+                    line4
+                    .datum(line4Data)
+                    .attr("d", d3.area()
+                        .x(function(d,i) { return (i) * (svgWidth / (linePoints-1)) })
+                        .y0(riverBottomValue)
+                        .y1(function(d) { return riverBottomValue - riverHeight*lineOffset4 - Math.max(0, d-50)})
+                        .curve(d3.curveBasis)
+                    );
+                }
+
+                svg.selectAll('circle')
+                    .data(circleData)
+                    .attr('r', function(d,i){
+                        var normalizedFrequencyValue = Math.max(0,(d-frequencyThreshold) / (255-frequencyThreshold));
+                        return minRadius + normalizedFrequencyValue * (maxRadius-minRadius);
+                    });
+
+            }
+
+            // Run the loop
+            renderAnimation();
+
+
+        }
+
 
         else{
             console.log("Audio not playing");
@@ -7283,7 +7674,7 @@ function drawBlob(hueInput){
     var maxDataPoints = 35;
     var numDataPoints = minDataPoints + (Math.random() * (maxDataPoints-minDataPoints)); //number of blob segments
     var innerRadius = 0; //min size
-    var outerRadius = Math.min(svgWidth, svgHeight)/12 * Math.random(); //max size
+    var outerRadius = Math.min(svgWidth, svgHeight)/15 * Math.random(); //max size
     var maxYValue = 200; //no change needed
     var yRandomStep = maxYValue * 0.04; //extent of potential randomness
     var xPosition = Math.random() * svgWidth;
