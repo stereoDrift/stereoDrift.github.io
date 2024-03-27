@@ -6555,7 +6555,7 @@ function runVisualization() {
             var activeMoonSizeRange = activeMoonMaxSize - activeMoonMinSize;
             var activeMoonMaxXShift = moonSize * 1.2;
 
-            var animationSpeed = 45000;
+            var animationSpeed = 65000;
 
             svg.append("circle")
                 .attr("cx",moonX)
@@ -6580,8 +6580,8 @@ function runVisualization() {
             var strokeWidth = 2;
     
             var offset1 = 0;
-            var offset2 = 60;
-            var offset3 = 120;
+            var offset2 = 80;
+            var offset3 = 160;
     
             var chartHeightMultiplier = 1.4;
             var joyPlotExponent = 0.92;
@@ -6695,6 +6695,574 @@ function runVisualization() {
     
             // Run the loop
             renderJoyPlotChart();
+
+        }
+
+        else if(visualizationChoice == "blokus"){
+
+            //static variables
+            var numCubes = 10;
+            var cubeLength = (svgWidth*0.88) / numCubes;
+            var slope = 0.1;
+            var width = cubeLength*numCubes;
+            var leftValue = svgWidth*0.08;
+            var bottomValue = svgHeight * 0.825;
+
+            var accentColour1 = "beige";
+            var accentColour2 = "#FFE0EB";
+
+            //animation variables
+            analyser.smoothingTimeConstant = 0.92;
+            var frequencyThreshold = 130;
+            var animationSpeed = 4000;
+
+            var minStroke = 1;
+            var maxStroke = 20;
+            var strokeRange = maxStroke - minStroke;
+            var minSlope = 0.0;
+            var maxSlope = 0.62;
+            var slopeRange = maxSlope - minSlope;
+            var height = width * maxSlope + cubeLength;
+            var hueRange = 125;
+
+            var numActiveLineSegments = (numCubes*4 + (numCubes+1)*2) * 2;
+            var frequencyData = new Uint8Array(numActiveLineSegments);
+
+            var topValue = bottomValue - height;
+
+            var lineFunction = d3.line()
+                .x(function(d) { return d.x; })
+                .y(function(d) { return d.y; })
+                //.curve(d3.curveCatmullRomClosed)
+                //.curve(d3.curveBasisClosed)
+
+            /*
+            //static perimeter -- left, top, right, bottom
+            svg.append("line")
+                .attr("x1",leftValue)
+                .attr("y1",bottomValue)
+                .attr("x2",leftValue)
+                .attr("y2",bottomValue - height)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",1)
+
+            svg.append("line")
+                .attr("x1",leftValue)
+                .attr("y1",bottomValue - height)
+                .attr("x2",leftValue + width)
+                .attr("y2",bottomValue - height)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",1)
+
+            svg.append("line")
+                .attr("x1",leftValue + width)
+                .attr("y1",bottomValue)
+                .attr("x2",leftValue + width)
+                .attr("y2",bottomValue - height)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",1)
+
+            svg.append("line")
+                .attr("x1",leftValue)
+                .attr("y1",bottomValue)
+                .attr("x2",leftValue + width)
+                .attr("y2",bottomValue)
+                .attr("stroke",strokeColour)
+                .attr("stroke-width",1)
+            */
+
+            //draw bottom right polygon
+            var currentPolygonPoints = [];
+
+            currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes-1), y: bottomValue-(cubeLength*(numCubes-1)*slope)});
+            currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes-1), y: bottomValue-(cubeLength*(numCubes-1)*slope)-cubeLength});
+            currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes), y: bottomValue-(cubeLength*(numCubes)*slope)-cubeLength});            
+            currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes), y: bottomValue-(cubeLength*(numCubes)*slope)});
+            //console.log(currentPolygonPoints);
+
+            svg
+                .append('path')
+                .datum(currentPolygonPoints)
+                .attr('d', lineFunction)
+                .attr('fill', fillColour)
+                .attr("id","activePolygon")
+
+            //draw top left polygon
+            var polygonPoints2 = [];
+
+            polygonPoints2.push({x: leftValue, y: topValue});
+            polygonPoints2.push({x: leftValue-cubeLength*slope, y: topValue+cubeLength*slope});
+            polygonPoints2.push({x: leftValue+cubeLength-cubeLength*slope, y: topValue+slope*cubeLength+cubeLength*slope});
+            polygonPoints2.push({x: leftValue+cubeLength, y: topValue+slope*cubeLength});
+
+            svg
+                .append('path')
+                .datum(polygonPoints2)
+                .attr('d', lineFunction)
+                .attr('fill', strokeColour)
+                .attr("id","activePolygon2")
+
+            //draw bottom left polygon
+            var polygonPoints3 = [];
+
+            polygonPoints3.push({x: leftValue, y: bottomValue});
+            polygonPoints3.push({x: leftValue-cubeLength*slope, y: bottomValue-cubeLength*slope});
+            polygonPoints3.push({x: leftValue-cubeLength*slope, y: bottomValue-cubeLength*slope - cubeLength});
+            polygonPoints3.push({x: leftValue, y: bottomValue - cubeLength});
+
+            svg
+                .append('path')
+                .datum(polygonPoints3)
+                .attr('d', lineFunction)
+                .attr('fill', accentColour1)
+                .attr("id","activePolygon3")
+
+            //draw top right polygon
+            var polygonPoints4 = [];
+
+            polygonPoints4.push({x: leftValue+cubeLength*(numCubes-1), y: topValue+(cubeLength*(numCubes-1)*slope)+cubeLength});
+            polygonPoints4.push({x: leftValue+cubeLength*(numCubes-1) - cubeLength*slope, y: topValue+(cubeLength*(numCubes-1)*slope)+cubeLength + cubeLength*slope});
+            polygonPoints4.push({x: leftValue+cubeLength*(numCubes) - cubeLength*slope, y: topValue+(cubeLength*(numCubes)*slope)+cubeLength + cubeLength*slope});
+            polygonPoints4.push({x: leftValue+cubeLength*(numCubes), y: topValue+(cubeLength*(numCubes)*slope)+cubeLength});
+            
+            svg
+                .append('path')
+                .datum(polygonPoints4)
+                .attr('d', lineFunction)
+                .attr('fill', accentColour2)
+                .attr("id","activePolygon4")
+
+            //bottom set of cubes
+            //front bottom line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i)
+                    .attr("y1",bottomValue - cubeLength*slope*i)
+                    .attr("x2",leftValue + cubeLength*(i+1))
+                    .attr("y2",bottomValue - cubeLength*slope*(i+1))
+                    .attr("stroke",strokeColour)
+                    .attr("stroke-width",1)
+                    .attr("id","frontBottomLine"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //front top line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i)
+                    .attr("y1",bottomValue - cubeLength*slope*i - cubeLength)
+                    .attr("x2",leftValue + cubeLength*(i+1))
+                    .attr("y2",bottomValue - cubeLength*slope*(i+1) - cubeLength)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","frontTopLine"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //back bottom line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i - cubeLength*slope)
+                    .attr("y1",bottomValue - cubeLength*slope*i - cubeLength*slope)
+                    .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*slope)
+                    .attr("y2",bottomValue - cubeLength*slope*(i+1) - cubeLength*slope)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","backBottomLine"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //back top line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i - cubeLength*slope)
+                    .attr("y1",bottomValue - cubeLength*slope*i - cubeLength - cubeLength*slope)
+                    .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*slope)
+                    .attr("y2",bottomValue - cubeLength*slope*(i+1) - cubeLength - cubeLength*slope)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","backTopLine"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //bottom connecting line segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength)
+                    .attr("y1",bottomValue - i*cubeLength*slope)
+                    .attr("x2",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y2",bottomValue - i*cubeLength*slope - cubeLength*slope)
+                    .attr("stroke","black")
+                    .attr("stroke-width",1)
+                    .attr("id","bottomConnectingLine"+i)
+            }
+            
+            //top connecting line segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength)
+                    .attr("y1",bottomValue - i*cubeLength*slope - cubeLength)
+                    .attr("x2",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y2",bottomValue - i*cubeLength*slope - cubeLength*slope - cubeLength)
+                    .attr("stroke","black")
+                    .attr("stroke-width",1)
+                    .attr("id","topConnectingLine"+i)
+            }    
+
+            //front straight segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength)
+                    .attr("y1",bottomValue - i*cubeLength*slope)
+                    .attr("x2",leftValue + i*cubeLength)
+                    .attr("y2",bottomValue - i*cubeLength*slope - cubeLength)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","frontLineSegment"+i)
+                    .attr("class","activeLineSegment") 
+            }
+
+            //back straight segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y1",bottomValue - i*cubeLength*slope - cubeLength*slope)
+                    .attr("x2",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y2",bottomValue - i*cubeLength*slope - cubeLength - cubeLength*slope)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","backLineSegment"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+
+            //top set of cubes
+            //front top line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i)
+                    .attr("y1",topValue + cubeLength*slope*i)
+                    .attr("x2",leftValue + cubeLength*(i+1))
+                    .attr("y2",topValue + cubeLength*slope*(i+1))
+                    .attr("stroke",strokeColour)
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine1"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //front bottom line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i)
+                    .attr("y1",topValue + cubeLength*slope*i + cubeLength)
+                    .attr("x2",leftValue + cubeLength*(i+1))
+                    .attr("y2",topValue + cubeLength*slope*(i+1) + cubeLength)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine2"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //back top line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i - cubeLength*slope)
+                    .attr("y1",topValue + cubeLength*slope*i + cubeLength*slope)
+                    .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*slope)
+                    .attr("y2",topValue + cubeLength*slope*(i+1) + cubeLength*slope)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine3"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //back bottom line
+            for(i=0; i<numCubes; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + cubeLength*i - cubeLength*slope)
+                    .attr("y1",topValue + cubeLength*slope*i + cubeLength + cubeLength*slope)
+                    .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*slope)
+                    .attr("y2",topValue + cubeLength*slope*(i+1) + cubeLength + cubeLength*slope)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine4"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+            //top connecting line segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength)
+                    .attr("y1",topValue + i*cubeLength*slope)
+                    .attr("x2",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y2",topValue + i*cubeLength*slope + cubeLength*slope)
+                    .attr("stroke","black")
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine5"+i)
+            }
+            
+            //bottom connecting line segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength)
+                    .attr("y1",topValue + i*cubeLength*slope + cubeLength)
+                    .attr("x2",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y2",topValue + i*cubeLength*slope + cubeLength*slope + cubeLength)
+                    .attr("stroke","black")
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine6"+i)
+            }    
+
+            //back straight segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength)
+                    .attr("y1",topValue + i*cubeLength*slope)
+                    .attr("x2",leftValue + i*cubeLength)
+                    .attr("y2",topValue + i*cubeLength*slope + cubeLength)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine7"+i)
+                    .attr("class","activeLineSegment") 
+            }
+
+            //front straight segments
+            for(i=0; i<numCubes+1; i++){
+                svg.append("line")
+                    .attr("x1",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y1",topValue + i*cubeLength*slope + cubeLength*slope)
+                    .attr("x2",leftValue + i*cubeLength - cubeLength*slope)
+                    .attr("y2",topValue + i*cubeLength*slope + cubeLength + cubeLength*slope)
+                    .attr("stroke",fillColour)
+                    .attr("stroke-width",1)
+                    .attr("id","topCubesLine8"+i)
+                    .attr("class","activeLineSegment")
+            }
+
+
+            // Continuously loop and update chart with frequency data.
+            function renderAnimation() {
+                
+                // Copy frequency data to frequencyData array.
+                
+                analyser.getByteFrequencyData(frequencyData);
+                var t = performance.now();
+                var currentSlope = (Math.sin(Math.PI*2 + t/animationSpeed)/2 + 0.5) * slopeRange + minSlope;
+                var totalYShift = width * currentSlope;
+
+                requestAnimationFrame(renderAnimation);
+
+                //bottom set of cubes
+                //front bottom line
+                for(i=0; i<numCubes; i++){
+
+                    svg.select("#frontBottomLine"+i)
+                        .attr("x1",leftValue + cubeLength*i)
+                        .attr("y1",bottomValue - cubeLength*currentSlope*i)
+                        .attr("x2",leftValue + cubeLength*(i+1))
+                        .attr("y2",bottomValue - cubeLength*currentSlope*(i+1))
+                }
+
+                //front top line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#frontTopLine"+i)
+                        .attr("x1",leftValue + cubeLength*i)
+                        .attr("y1",bottomValue - cubeLength*currentSlope*i - cubeLength)
+                        .attr("x2",leftValue + cubeLength*(i+1))
+                        .attr("y2",bottomValue - cubeLength*currentSlope*(i+1) - cubeLength)
+                }
+
+                //back bottom line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#backBottomLine"+i)
+                        .attr("x1",leftValue + cubeLength*i - cubeLength*currentSlope)
+                        .attr("y1",bottomValue - cubeLength*currentSlope*i - cubeLength*currentSlope)
+                        .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*currentSlope)
+                        .attr("y2",bottomValue - cubeLength*currentSlope*(i+1) - cubeLength*currentSlope)
+                }
+
+                //back top line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#backTopLine"+i)
+                        .attr("x1",leftValue + cubeLength*i - cubeLength*currentSlope)
+                        .attr("y1",bottomValue - cubeLength*currentSlope*i - cubeLength - cubeLength*currentSlope)
+                        .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*currentSlope)
+                        .attr("y2",bottomValue - cubeLength*currentSlope*(i+1) - cubeLength - cubeLength*currentSlope)
+                }
+
+                //bottom connecting line segments
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#bottomConnectingLine"+i)
+                        .attr("x1",leftValue + i*cubeLength)
+                        .attr("y1",bottomValue - i*cubeLength*currentSlope)
+                        .attr("x2",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y2",bottomValue - i*cubeLength*currentSlope - cubeLength*currentSlope)
+                }
+                
+                //top connecting line segments
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#topConnectingLine"+i)
+                        .attr("x1",leftValue + i*cubeLength)
+                        .attr("y1",bottomValue - i*cubeLength*currentSlope - cubeLength)
+                        .attr("x2",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y2",bottomValue - i*cubeLength*currentSlope - cubeLength*currentSlope - cubeLength)
+                } 
+
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#frontLineSegment"+i)
+                        .attr("x1",leftValue + i*cubeLength)
+                        .attr("y1",bottomValue - i*cubeLength*currentSlope)
+                        .attr("x2",leftValue + i*cubeLength)
+                        .attr("y2",bottomValue - i*cubeLength*currentSlope - cubeLength)
+                }
+
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#backLineSegment"+i)
+                        .attr("x1",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y1",bottomValue - i*cubeLength*currentSlope - cubeLength*currentSlope)
+                        .attr("x2",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y2",bottomValue - i*cubeLength*currentSlope - cubeLength - cubeLength*currentSlope)
+                }
+
+                //top set of cubes
+                //front top line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#topCubesLine1"+i)
+                        .attr("x1",leftValue + cubeLength*i)
+                        .attr("y1",topValue + cubeLength*currentSlope*i)
+                        .attr("x2",leftValue + cubeLength*(i+1))
+                        .attr("y2",topValue + cubeLength*currentSlope*(i+1))
+                }
+
+                //front bottom line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#topCubesLine2"+i)
+                        .attr("x1",leftValue + cubeLength*i)
+                        .attr("y1",topValue + cubeLength*currentSlope*i + cubeLength)
+                        .attr("x2",leftValue + cubeLength*(i+1))
+                        .attr("y2",topValue + cubeLength*currentSlope*(i+1) + cubeLength)
+                }
+
+                //back top line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#topCubesLine3"+i)
+                        .attr("x1",leftValue + cubeLength*i - cubeLength*currentSlope)
+                        .attr("y1",topValue + cubeLength*currentSlope*i + cubeLength*currentSlope)
+                        .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*currentSlope)
+                        .attr("y2",topValue + cubeLength*currentSlope*(i+1) + cubeLength*currentSlope)
+                }
+
+                //back bottom line
+                for(i=0; i<numCubes; i++){
+                    svg.select("#topCubesLine4"+i)
+                        .attr("x1",leftValue + cubeLength*i - cubeLength*currentSlope)
+                        .attr("y1",topValue + cubeLength*currentSlope*i + cubeLength + cubeLength*currentSlope)
+                        .attr("x2",leftValue + cubeLength*(i+1) - cubeLength*currentSlope)
+                        .attr("y2",topValue + cubeLength*currentSlope*(i+1) + cubeLength + cubeLength*currentSlope)
+                }
+
+                //top connecting line segments
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#topCubesLine5"+i)
+                        .attr("x1",leftValue + i*cubeLength)
+                        .attr("y1",topValue + i*cubeLength*currentSlope)
+                        .attr("x2",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y2",topValue + i*cubeLength*currentSlope + cubeLength*currentSlope)
+                }
+                
+                //bottom connecting line segments
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#topCubesLine6"+i)
+                        .attr("x1",leftValue + i*cubeLength)
+                        .attr("y1",topValue + i*cubeLength*currentSlope + cubeLength)
+                        .attr("x2",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y2",topValue + i*cubeLength*currentSlope + cubeLength*currentSlope + cubeLength)
+                }    
+
+                //back straight segments
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#topCubesLine7"+i)
+                        .attr("x1",leftValue + i*cubeLength)
+                        .attr("y1",topValue + i*cubeLength*currentSlope)
+                        .attr("x2",leftValue + i*cubeLength)
+                        .attr("y2",topValue + i*cubeLength*currentSlope + cubeLength)
+                }
+
+                //front straight segments
+                for(i=0; i<numCubes+1; i++){
+                    svg.select("#topCubesLine8"+i)
+                        .attr("x1",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y1",topValue + i*cubeLength*currentSlope + cubeLength*currentSlope)
+                        .attr("x2",leftValue + i*cubeLength - cubeLength*currentSlope)
+                        .attr("y2",topValue + i*cubeLength*currentSlope + cubeLength + cubeLength*currentSlope)
+                }
+
+                //update bottom right polygon position
+                var currentPolygonPoints = [];
+
+                currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes-1), y: bottomValue-(cubeLength*(numCubes-1)*currentSlope)});
+                currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes-1), y: bottomValue-(cubeLength*(numCubes-1)*currentSlope)-cubeLength});
+                currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes), y: bottomValue-(cubeLength*(numCubes)*currentSlope)-cubeLength});            
+                currentPolygonPoints.push({x: leftValue+cubeLength*(numCubes), y: bottomValue-(cubeLength*(numCubes)*currentSlope)});
+                
+                svg.select("#activePolygon")
+                    .datum(currentPolygonPoints)
+                    .attr('d', lineFunction)
+
+                //update top left polygon position
+                var polygonPoints2 = [];
+
+                polygonPoints2.push({x: leftValue, y: topValue});
+                polygonPoints2.push({x: leftValue-cubeLength*currentSlope, y: topValue+cubeLength*currentSlope});
+                polygonPoints2.push({x: leftValue+cubeLength-cubeLength*currentSlope, y: topValue+currentSlope*cubeLength+cubeLength*currentSlope});
+                polygonPoints2.push({x: leftValue+cubeLength, y: topValue+currentSlope*cubeLength});
+
+                svg.select("#activePolygon2")
+                    .datum(polygonPoints2)
+                    .attr('d', lineFunction)
+
+                //update bottom left polygon
+                var polygonPoints3 = [];
+
+                polygonPoints3.push({x: leftValue, y: bottomValue});
+                polygonPoints3.push({x: leftValue-cubeLength*currentSlope, y: bottomValue-cubeLength*currentSlope});
+                polygonPoints3.push({x: leftValue-cubeLength*currentSlope, y: bottomValue-cubeLength*currentSlope - cubeLength});
+                polygonPoints3.push({x: leftValue, y: bottomValue - cubeLength});
+
+                svg.select("#activePolygon3")
+                    .datum(polygonPoints3)
+                    .attr('d', lineFunction)
+
+                //update top right polygon
+                var polygonPoints4 = [];
+
+                polygonPoints4.push({x: leftValue+cubeLength*(numCubes-1), y: topValue+(cubeLength*(numCubes-1)*currentSlope)+cubeLength});
+                polygonPoints4.push({x: leftValue+cubeLength*(numCubes-1) - cubeLength*currentSlope, y: topValue+(cubeLength*(numCubes-1)*currentSlope)+cubeLength + cubeLength*currentSlope});
+                polygonPoints4.push({x: leftValue+cubeLength*(numCubes) - cubeLength*currentSlope, y: topValue+(cubeLength*(numCubes)*currentSlope)+cubeLength + cubeLength*currentSlope});
+                polygonPoints4.push({x: leftValue+cubeLength*(numCubes), y: topValue+(cubeLength*(numCubes)*currentSlope)+cubeLength});
+                
+                svg.select("#activePolygon4")
+                    .datum(polygonPoints4)
+                    .attr('d', lineFunction)
+
+
+                //change line stroke width and stroke colour based on music frequency
+                svg.selectAll(".activeLineSegment")
+                    .attr("stroke-width",function(d,i){
+                        var normalizedFrequencyValue = Math.max(0,(frequencyData[i]-frequencyThreshold)/(255-frequencyThreshold));
+                        var currentValue = normalizedFrequencyValue * strokeRange + minStroke;
+                        return currentValue;
+                    })
+                    .attr("stroke",function(d,i){
+                        var normalizedFrequencyValue = Math.max(0,(frequencyData[i]-frequencyThreshold)/(255-frequencyThreshold));
+                        var currentValue = d3.hsl(strokeHue - hueRange/2 + normalizedFrequencyValue*hueRange, normalizedFrequencyValue, normalizedFrequencyValue);
+                        return currentValue;
+                    })
+    
+            }
+    
+            // Run the loop
+            renderAnimation();
 
         }
 
